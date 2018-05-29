@@ -1,0 +1,42 @@
+{
+  "machine": {
+    "_comment": "The IDs are transformed into UUIDs by the simulator. They can thus be any string!",
+    "id": "computer-address",
+    "font": "./assets/opencomputers/font.hex",
+    "fontHeight": 16,
+    "type": "MachineOpenComputers",
+    "machineFile": "./assets/opencomputers/lua/machine.lua"
+  },
+  "tickDuration": 0.05,
+  "components": [
+    {
+      "id": "eeprom-address",
+      "type": "InMemoryStaticByteStorage",
+      "file": "./assets/opencomputers/lua/bios.lua",
+      "size": 4352,
+      "_comment": "4352 is 4096 (code) + 256 (data). This is the default size of an OC EEPROM."
+    },
+    {
+      "id": "filesystem-address",
+      "type": "SimulatorFileSystem",
+      "base": "./assets/opencomputers/loot/openos"
+    },
+    {
+      "id": "screen-address",
+      "type": "SimulatorFrameBufferWindow",
+      "connects": ["keyboard-address"],
+      "windowName": "OpenComputers framebuffer"
+    },
+    {
+      "id": "keyboard-address",
+      "type": "SimulatorKeyboardInputWindow",
+      "windowName": "OpenComputers keyboard"
+    },
+    {
+      "id": "gpu-address",
+      "type": "PeripheralOCGPU",
+      "maxWidth": 80,
+      "maxHeight": 25
+    }
+  ]
+}
