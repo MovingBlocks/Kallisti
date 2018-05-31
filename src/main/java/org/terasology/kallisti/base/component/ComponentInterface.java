@@ -16,12 +16,15 @@
 
 package org.terasology.kallisti.base.component;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- * Interface for Components which serve as Peripherals for a given computer.
- *
- * TODO: Is this temporary?
+ * Marks an interface (or class) used in component queries.
  */
-@ComponentInterface
-public interface Peripheral {
-    String type();
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface ComponentInterface {
 }

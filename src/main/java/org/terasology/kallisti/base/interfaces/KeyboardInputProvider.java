@@ -16,6 +16,9 @@
 
 package org.terasology.kallisti.base.interfaces;
 
+import org.terasology.kallisti.base.component.ComponentInterface;
+
+@ComponentInterface
 public interface KeyboardInputProvider {
     enum KeyType {
         PRESSED,

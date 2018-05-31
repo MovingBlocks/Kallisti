@@ -16,12 +16,15 @@
 
 package org.terasology.kallisti.base.interfaces;
 
+import org.terasology.kallisti.base.component.ComponentInterface;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.util.Date;
 import java.util.List;
 
+@ComponentInterface
 public interface FileSystem {
     interface Metadata {
         String name();

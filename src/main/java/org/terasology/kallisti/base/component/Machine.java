@@ -135,7 +135,7 @@ public abstract class Machine {
     // Initialized by addComponent();
     private final List<ComponentEntry> entries;
     private final Map<Object, ComponentEntry> entriesByObject;
-    private final MultiValueMap<Class, ComponentEntry> entriesByClass;
+    private final Map<Class, Map<ComponentContext, ComponentEntry>> entryClassContextTable;
 
     // Used by .initialize()
     private final MultiValueMap<Class, Object> nonEntryObjectsByClass;
@@ -155,7 +155,7 @@ public abstract class Machine {
 
         entries = new ArrayList<>();
         entriesByObject = new IdentityHashMap<>();
-        entriesByClass = new ListBackedMultiValueMap<>(new IdentityHashMap<>(), ArrayList::new);
+        entryClassContextTable = new HashMap<>();
         nonEntryObjectsByClass = new ListBackedMultiValueMap<>(new IdentityHashMap<>(), ArrayList::new);
 
         initialized = false;
@@ -254,22 +254,50 @@ public abstract class Machine {
 
     protected boolean addNonEntryObject(Object o) {
         for (Class c : KallistiReflect.classes(o.getClass())) {
-            nonEntryObjectsByClass.add(c, o);
+            if (!nonEntryObjectsByClass.contains(c, o)) {
+                nonEntryObjectsByClass.add(c, o);
+            }
         }
 
         return true;
+    }
+
+    private static final Map<Class, Boolean> isComponentItfMap = new HashMap<>();
+
+    private static boolean isComponentInterface(Class c) {
+        return isComponentItfMap.computeIfAbsent(c,
+                (cc) -> {
+                    for (Class cl : KallistiReflect.classes(cc)) {
+                        if (cl.getAnnotation(ComponentInterface.class) != null) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                });
     }
 
     public boolean addComponent(ComponentContext context, Object o) throws IllegalArgumentException {
         ComponentEntry entry = new ComponentEntry(context, o);
         Class objectClass = entry.object.getClass();
 
+        for (Class c : KallistiReflect.classes(objectClass)) {
+            if (isComponentInterface(c)) {
+                Map<ComponentContext, ComponentEntry> m = entryClassContextTable.computeIfAbsent(c, (cc -> new HashMap<>()));
+                if (m.containsKey(context)) {
+                    return false;
+                }
+            }
+        }
+
         entries.add(entry);
         entriesByObject.put(entry.object, entry);
 
         for (Class c : KallistiReflect.classes(objectClass)) {
-            // TODO: Check if ComponentContext/Class pair already exists?
-            entriesByClass.add(c, entry);
+            if (isComponentInterface(c)) {
+                Map<ComponentContext, ComponentEntry> m = entryClassContextTable.computeIfAbsent(c, (cc -> new HashMap<>()));
+                m.put(context, entry);
+            }
         }
 
         return true;
@@ -280,9 +308,10 @@ public abstract class Machine {
             throw new RuntimeException("Already initialized!");
         }
 
-        int lastEntrySize = entries.size();
-        int added = lastEntrySize;
-        while (added > 0) {
+        boolean addedNewComponents = true;
+        while (addedNewComponents) {
+            addedNewComponents = false;
+
             for (Rule r : creationRules) {
                 List<List<Object>> baseComponents = new ArrayList<>();
                 int permutations = 1;
@@ -298,7 +327,7 @@ public abstract class Machine {
                         c = (Class) (((ParameterizedType) inpGeneric[i]).getActualTypeArguments()[0]);
                     }
 
-                    Collection ccol = entriesByClass.values(c);
+                    Collection ccol = entryClassContextTable.getOrDefault(c, Collections.emptyMap()).values();
                     if (ccol.isEmpty()) {
                         ccol = nonEntryObjectsByClass.values(c);
                     }
@@ -341,16 +370,8 @@ public abstract class Machine {
                         Object result = r.invoke(params);
                         if (result != null) {
                             ComponentContext context = join(contexts.toArray(new ComponentContext[0]));
-                            boolean found = false;
-                            for (ComponentEntry entry : entriesByClass.values(result.getClass())) {
-                                if (entry.context.equals(context)) {
-                                    found = true;
-                                    break;
-                                }
-                            }
-
-                            if (!found) {
-                                addComponent(context, result);
+                            if (getComponent(context, result.getClass()) == null) {
+                                addedNewComponents |= addComponent(context, result);
                             }
                         }
                     } catch (Throwable e) {
@@ -359,9 +380,6 @@ public abstract class Machine {
                     }
                 }
             }
-
-            added = entries.size() - lastEntrySize;
-            lastEntrySize += added;
         }
 
         // Populate eventHandler
@@ -388,12 +406,16 @@ public abstract class Machine {
     }
 
     public <T> Collection<T> getComponentsByClass(Class<T> c) {
-        return entriesByClass.values(c).stream().map((e) -> (T) e.object).collect(Collectors.toList());
+        return entryClassContextTable
+                    .getOrDefault(c, Collections.emptyMap())
+                    .values().stream().map((e) -> (T) e.object).collect(Collectors.toList());
     }
 
 
     public Collection<ComponentContext> getContextsByClass(Class c) {
-        return entriesByClass.values(c).stream().map((e) -> e.context).collect(Collectors.toList());
+        return entryClassContextTable
+                .getOrDefault(c, Collections.emptyMap())
+                .values().stream().map((e) -> e.context).collect(Collectors.toList());
     }
 
     public ComponentContext getContext(Object component) {

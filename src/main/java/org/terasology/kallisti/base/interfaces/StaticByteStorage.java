@@ -16,12 +16,15 @@
 
 package org.terasology.kallisti.base.interfaces;
 
+import org.terasology.kallisti.base.component.ComponentInterface;
+
 /**
  * An interface for static-sized, byte array-backed storage.
  *
  * For example, OpenComputers EEPROMs, or a ROM used by an 8-bit
  * microcomputer.
  */
+@ComponentInterface
 public interface StaticByteStorage {
     /**
      * Returns the backing byte array, which can also be queried for size.

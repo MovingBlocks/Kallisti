@@ -16,12 +16,14 @@
 
 package org.terasology.kallisti.base.interfaces;
 
+import org.terasology.kallisti.base.component.ComponentInterface;
 import org.terasology.kallisti.base.util.Dimension;
 import org.terasology.kallisti.base.util.PixelDimension;
 
 /**
  * TODO: Is this temporary?
  */
+@ComponentInterface
 public interface FrameBuffer {
     interface Image {
         PixelDimension size();
