@@ -308,6 +308,14 @@ public abstract class Machine {
             throw new RuntimeException("Already initialized!");
         }
 
+        // Sort rules
+        Comparator<Rule> sorter = (rule1, rule2) -> Integer.compare(rule2.getPriority(), rule1.getPriority());
+        creationRules.sort(sorter);
+        for (Class c : linkingRules.keys()) {
+            ((List<Rule>) linkingRules.values(c)).sort(sorter);
+        }
+
+        // Add components
         boolean addedNewComponents = true;
         while (addedNewComponents) {
             addedNewComponents = false;
