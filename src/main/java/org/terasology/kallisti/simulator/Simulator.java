@@ -83,11 +83,7 @@ public class Simulator {
     }
 
     public boolean tick() throws Exception {
-        boolean t = machine.tick(getTickDuration());
-        for (SimulatorUpdateable updateable : machine.getComponentsByClass(SimulatorUpdateable.class)) {
-            updateable.update();
-        }
-        return t;
+        return machine.tick(getTickDuration());
     }
 
     private static ComponentContext appendContextInitial(JsonObject object, Map<String, ComponentContext> components) {

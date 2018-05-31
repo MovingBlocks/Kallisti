@@ -16,7 +16,9 @@
 
 package org.terasology.kallisti.oc;
 
+import org.terasology.kallisti.base.component.ComponentEventListener;
 import org.terasology.kallisti.base.component.ComponentRule;
+import org.terasology.kallisti.base.component.ComponentTickEvent;
 import org.terasology.kallisti.base.component.Peripheral;
 import org.terasology.kallisti.base.interfaces.KeyboardInputProvider;
 
@@ -27,7 +29,7 @@ import static java.awt.event.KeyEvent.*;
 import static java.awt.event.KeyEvent.VK_DELETE;
 import static java.awt.event.KeyEvent.VK_INSERT;
 
-public class PeripheralOCKeyboard implements OCEventProvider, Peripheral {
+public class PeripheralOCKeyboard implements Peripheral {
     private static final Map<Integer, Integer> vkToCode = new HashMap<>();
 
     static {
@@ -89,15 +91,17 @@ public class PeripheralOCKeyboard implements OCEventProvider, Peripheral {
         // numpad
     }
 
+    private final MachineOpenComputers machine;
     private final KeyboardInputProvider provider;
 
     @ComponentRule
-    public PeripheralOCKeyboard(KeyboardInputProvider provider) {
+    public PeripheralOCKeyboard(MachineOpenComputers machine, KeyboardInputProvider provider) {
+        this.machine = machine;
         this.provider = provider;
     }
 
-    @Override
-    public void gatherEvents(MachineOpenComputers machine) {
+    @ComponentEventListener
+    public void onTick(ComponentTickEvent event) {
         while (provider.hasNextKey()) {
             KeyboardInputProvider.Key key = provider.nextKey();
 

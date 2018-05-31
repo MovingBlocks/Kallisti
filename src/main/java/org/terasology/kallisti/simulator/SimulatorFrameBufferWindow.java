@@ -16,6 +16,8 @@
 
 package org.terasology.kallisti.simulator;
 
+import org.terasology.kallisti.base.component.ComponentEventListener;
+import org.terasology.kallisti.base.component.ComponentTickEvent;
 import org.terasology.kallisti.base.interfaces.FrameBuffer;
 import org.terasology.kallisti.base.util.PixelDimension;
 
@@ -23,7 +25,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class SimulatorFrameBufferWindow implements FrameBuffer, SimulatorUpdateable {
+public class SimulatorFrameBufferWindow implements FrameBuffer {
     public class Canvas extends JComponent {
         @Override
         public void paintComponent(Graphics gz) {
@@ -50,8 +52,8 @@ public class SimulatorFrameBufferWindow implements FrameBuffer, SimulatorUpdatea
         this.renderer = renderer;
     }
 
-    @Override
-    public void update() {
+    @ComponentEventListener
+    public void update(ComponentTickEvent event) {
         if (renderer != null) {
             renderer.render(this);
             Dimension d = new Dimension(image.getWidth(), image.getHeight());

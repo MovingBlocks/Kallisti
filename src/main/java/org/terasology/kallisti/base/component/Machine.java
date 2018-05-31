@@ -130,6 +130,8 @@ public abstract class Machine {
         }
     }
 
+    protected final ComponentEventHandler eventHandler;
+
     // Initialized by addComponent();
     private final List<ComponentEntry> entries;
     private final Map<Object, ComponentEntry> entriesByObject;
@@ -146,6 +148,8 @@ public abstract class Machine {
     private boolean initialized;
 
     public Machine() {
+        eventHandler = new ComponentEventHandler();
+
         creationRules = new ArrayList<>();
         linkingRules = new ListBackedMultiValueMap<>(new IdentityHashMap<>(), ArrayList::new);
 
@@ -360,6 +364,15 @@ public abstract class Machine {
             lastEntrySize += added;
         }
 
+        // Populate eventHandler
+        Set<Object> addedObjects = new HashSet<>();
+
+        for (ComponentEntry ce : entries) {
+            if (addedObjects.add(ce.object)) {
+                eventHandler.register(ce.object);
+            }
+        }
+
         initialized = true;
     }
 
@@ -388,5 +401,10 @@ public abstract class Machine {
     }
 
     public abstract void start() throws Exception;
-    public abstract boolean tick(double time) throws Exception;
+    public final boolean tick(double time) throws Exception {
+        eventHandler.emit(new ComponentTickEvent(time));
+        return tickInternal(time);
+    }
+
+    protected abstract boolean tickInternal(double time) throws Exception;
 }

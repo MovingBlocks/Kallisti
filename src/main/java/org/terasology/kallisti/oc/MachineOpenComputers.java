@@ -17,6 +17,7 @@
 package org.terasology.kallisti.oc;
 
 import org.terasology.kallisti.base.component.ComponentContext;
+import org.terasology.kallisti.base.component.ComponentTickEvent;
 import org.terasology.kallisti.base.component.Machine;
 import org.terasology.kallisti.base.component.Peripheral;
 import org.terasology.kallisti.jnlua.KallistiConverter;
@@ -55,7 +56,8 @@ public class MachineOpenComputers extends Machine {
         state.openLib(LuaState.Library.TABLE);
         state.openLib(LuaState.Library.DEBUG);
         state.openLib(LuaState.Library.UTF8);
-        state.pop(7);
+        state.openLib(LuaState.Library.ERIS);
+        state.pop(8);
 
         state.setConverter(converter);
 
@@ -140,11 +142,8 @@ public class MachineOpenComputers extends Machine {
         return time;
     }
 
-    public boolean tick(double tickTime) throws Exception {
-        for (OCEventProvider provider : getComponentsByClass(OCEventProvider.class)) {
-            provider.gatherEvents(this);
-        }
-
+    @Override
+    public boolean tickInternal(double tickTime) throws Exception {
         int inArgs = 0;
         if (lastReturned != null && lastReturned.length > 0) {
             if (lastReturned[0] instanceof Number) {
