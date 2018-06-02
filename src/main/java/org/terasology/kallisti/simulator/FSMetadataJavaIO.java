@@ -22,14 +22,22 @@ import java.util.Date;
 
 public class FSMetadataJavaIO implements FileSystem.Metadata {
     private final java.io.File file;
+    private final String path;
 
-    public FSMetadataJavaIO(java.io.File file) {
+    // TODO: Derive path from File.
+    public FSMetadataJavaIO(java.io.File file, String path) {
         this.file = file;
+        this.path = path;
     }
 
     @Override
     public String name() {
         return file.getName();
+    }
+
+    @Override
+    public String path() {
+        return path;
     }
 
     @Override

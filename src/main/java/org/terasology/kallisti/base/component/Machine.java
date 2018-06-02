@@ -24,6 +24,9 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * The base class for a Machine, implementing component management logic.
+ */
 public abstract class Machine {
     private interface Rule {
         int getPriority();
@@ -140,7 +143,7 @@ public abstract class Machine {
     // Used by .initialize()
     private final MultiValueMap<Class, Object> nonEntryObjectsByClass;
 
-    // Initialized by register()
+    // Initialized by registerRules()
     private final List<Rule> creationRules;
     private final MultiValueMap<Class, Rule> linkingRules;
 
@@ -160,10 +163,10 @@ public abstract class Machine {
 
         initialized = false;
 
-        addNonEntryObject(this);
+        addNonComponentObject(this);
     }
 
-    private void register(Object parent, Method m) throws IllegalArgumentException {
+    private void registerRules(Object parent, Method m) throws IllegalArgumentException {
         ComponentRule rule = m.getAnnotation(ComponentRule.class);
         if (rule != null) {
             RuleMethod r = new RuleMethod(parent, m, rule.priority());
@@ -184,10 +187,16 @@ public abstract class Machine {
         }
     }
 
-    public void register(Class c) throws IllegalArgumentException {
+    /**
+     * Register the component rules present in static methods and constructors
+     * of the given class.
+     * @param c The given class.
+     * @throws IllegalArgumentException
+     */
+    public void registerRules(Class c) throws IllegalArgumentException {
         for (Method m : c.getMethods()) {
             if ((m.getModifiers() & Modifier.STATIC) != 0) {
-                register(null, m);
+                registerRules(null, m);
             }
         }
 
@@ -213,9 +222,14 @@ public abstract class Machine {
         }
     }
 
-    public void register(Object o) throws IllegalArgumentException {
+    /**
+     * Register the component rules present in methods of the given object.
+     * @param o The given object.
+     * @throws IllegalArgumentException
+     */
+    public void registerRules(Object o) throws IllegalArgumentException {
         for (Method m : o.getClass().getMethods()) {
-            register(o, m);
+            registerRules(o, m);
         }
     }
 
@@ -252,7 +266,14 @@ public abstract class Machine {
         }
     }
 
-    protected boolean addNonEntryObject(Object o) {
+    /**
+     * Add a non-component object accessible to components during creation.
+     * In general, these should be objects related to a given Machine, such
+     * as the Machine itself.
+     * @param o The non-component object.
+     * @return Whether the addition was successful.
+     */
+    protected boolean addNonComponentObject(Object o) {
         for (Class c : KallistiReflect.classes(o.getClass())) {
             if (!nonEntryObjectsByClass.contains(c, o)) {
                 nonEntryObjectsByClass.add(c, o);
@@ -277,7 +298,15 @@ public abstract class Machine {
                 });
     }
 
-    public boolean addComponent(ComponentContext context, Object o) throws IllegalArgumentException {
+    /**
+     * Add a new component to the Machine. If a @ComponentInterface-marked
+     * class or subclass is already present with the same context, the
+     * component will not be added.
+     * @param context The component's context.
+     * @param o The component object.
+     * @return Whether or not the addition was successful.
+     */
+    public boolean addComponent(ComponentContext context, Object o) {
         ComponentEntry entry = new ComponentEntry(context, o);
         Class objectClass = entry.object.getClass();
 
@@ -303,6 +332,9 @@ public abstract class Machine {
         return true;
     }
 
+    /**
+     * Initialize the machine.
+     */
     public void initialize() {
         if (initialized) {
             throw new RuntimeException("Already initialized!");
@@ -402,17 +434,30 @@ public abstract class Machine {
         initialized = true;
     }
 
+    /**
+     * Retrieve a component. May return null.
+     * @param context The context of the component.
+     * @param c The class of the component. Should be a (sub)class or
+     *          (sub)interface marked with @ComponentInterface.
+     * @param <T> The type of the component.
+     * @return The component, or null if not present.
+     */
+    @SuppressWarnings("unchecked")
     public <T> T getComponent(ComponentContext context, Class<T> c) {
-        // TODO: Faster impelmentation
-        for (T t : getComponentsByClass(c)) {
-            if (getContext(t).equals(context)) {
-                return t;
-            }
-        }
+        ComponentEntry entry = entryClassContextTable
+                .getOrDefault(c, Collections.emptyMap())
+                .get(context);
 
-        return null;
+        return entry != null ? (T) entry.object : null;
     }
 
+    /**
+     * Retrieve all components of a given class.
+     * @param c The class of the component.
+     * @param <T> The type of the component.
+     * @return The component, or null if not present.
+     */
+    @SuppressWarnings("unchecked")
     public <T> Collection<T> getComponentsByClass(Class<T> c) {
         return entryClassContextTable
                     .getOrDefault(c, Collections.emptyMap())
@@ -420,17 +465,37 @@ public abstract class Machine {
     }
 
 
+    /**
+     * Retrieve all component contexts of a given class.
+     * @param c The class of the component.
+     * @param <T> The type of the component.
+     * @return The component, or null if not present.
+     */
     public Collection<ComponentContext> getContextsByClass(Class c) {
         return entryClassContextTable
                 .getOrDefault(c, Collections.emptyMap())
                 .values().stream().map((e) -> e.context).collect(Collectors.toList());
     }
 
+    /**
+     * Get the context of a given component.
+     * @param component The component object.
+     * @return The context.
+     */
     public ComponentContext getContext(Object component) {
         return entriesByObject.get(component).context;
     }
 
+    /**
+     * Start the computer after initialization.
+     * @throws Exception
+     */
     public abstract void start() throws Exception;
+
+    /**
+     * Run one tick of the computer, lasting a given amount of time.
+     * @throws Exception
+     */
     public final boolean tick(double time) throws Exception {
         eventHandler.emit(new ComponentTickEvent(time));
         return tickInternal(time);

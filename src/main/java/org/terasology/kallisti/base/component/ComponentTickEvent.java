@@ -1,5 +1,8 @@
 package org.terasology.kallisti.base.component;
 
+/**
+ * A component event emitted once every machine tick.
+ */
 public class ComponentTickEvent extends ComponentEvent {
     private final double tickTime;
 
@@ -7,6 +10,9 @@ public class ComponentTickEvent extends ComponentEvent {
         this.tickTime = tickTime;
     }
 
+    /**
+     * @return The duration of the tick in question, in seconds.
+     */
     public double getTickTime() {
         return tickTime;
     }

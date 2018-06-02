@@ -7,6 +7,9 @@ import java.lang.annotation.Target;
 
 /**
  * Interface used to mark event listening methods in components.
+ *
+ * The signature is as follows:
+ * void eventListener([? extends ComponentEvent] event) { ... }
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

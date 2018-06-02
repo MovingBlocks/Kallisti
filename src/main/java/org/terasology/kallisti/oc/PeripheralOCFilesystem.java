@@ -25,6 +25,7 @@ import org.terasology.kallisti.base.interfaces.Labelable;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -180,7 +181,11 @@ public class PeripheralOCFilesystem implements Peripheral {
 
     @ComponentMethod
     public List<String> list(String path) {
-        return fileSystem.list(path).stream().map((m) -> m.isDirectory() ? m.name() + "/" : m.name()).collect(Collectors.toList());
+        try {
+            return fileSystem.list(path).stream().map((m) -> m.isDirectory() ? m.name() + "/" : m.name()).collect(Collectors.toList());
+        } catch (IOException e) {
+            return Collections.emptyList();
+        }
     }
 
     @ComponentMethod

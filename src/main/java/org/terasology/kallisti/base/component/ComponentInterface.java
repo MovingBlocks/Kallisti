@@ -23,6 +23,11 @@ import java.lang.annotation.Target;
 
 /**
  * Marks an interface (or class) used in component queries.
+ *
+ * Any class implementing an interface annotated with this, extending a class
+ * annotated with this or being annotated with this itself will be counted as
+ * a component which may be queried using the Machine's lookup methods.
+ * As such, only one of its type will be able to exist per Context.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

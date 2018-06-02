@@ -48,10 +48,10 @@ public class OCTextRenderer {
         int fontWidth = data.length * 8 / font.getFontHeight();
         int p = 0;
         for (int iy = 0; iy < font.getFontHeight(); iy++) {
-            int dp = (py + iy) * image.size().getX();
-            for (int ix = 0; ix < fontWidth; ix++, p++) {
+            int dp = (py + iy) * image.size().getX() + px;
+            for (int ix = 0; ix < fontWidth; ix++, dp++, p++) {
                 int v = data[p >> 3] & (1 << ((p ^ 7) & 7));
-                imgData[dp + px + ix] = 0xFF000000 | (v != 0 ? fg : bg);
+                imgData[dp] = 0xFF000000 | (v != 0 ? fg : bg);
             }
         }
 

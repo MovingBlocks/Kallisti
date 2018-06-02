@@ -18,6 +18,7 @@ package org.terasology.kallisti.simulator;
 
 import org.terasology.kallisti.base.component.ComponentContext;
 import org.terasology.kallisti.base.interfaces.ConnectedContext;
+import org.terasology.kallisti.base.interfaces.Identifiable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,5 +50,19 @@ public class SimulatorComponentContext implements ComponentContext, ConnectedCon
     @Override
     public List<ComponentContext> getNeighbors() {
         return contexts;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Identifiable)) {
+            return false;
+        } else {
+            return ((Identifiable) other).identifier().equals(identifier());
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

@@ -38,5 +38,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 public @interface ComponentRule {
+    /**
+     * The priority of the rule. Higher priorities are attempted first.
+     * @return The priority of the rule.
+     */
     int priority() default 0;
 }

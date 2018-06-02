@@ -17,7 +17,6 @@
 package org.terasology.kallisti.oc;
 
 import org.terasology.kallisti.base.component.ComponentContext;
-import org.terasology.kallisti.base.component.ComponentTickEvent;
 import org.terasology.kallisti.base.component.Machine;
 import org.terasology.kallisti.base.component.Peripheral;
 import org.terasology.kallisti.jnlua.KallistiConverter;
@@ -78,10 +77,10 @@ public class MachineOpenComputers extends Machine {
 
         addComponent(selfContext, peripheralComputer = new PeripheralOCComputer());
 
-        register(PeripheralOCEEPROM.class);
-        register(PeripheralOCFilesystem.class);
-        register(PeripheralOCKeyboard.class);
-        register(PeripheralOCScreen.class);
+        registerRules(PeripheralOCEEPROM.class);
+        registerRules(PeripheralOCFilesystem.class);
+        registerRules(PeripheralOCKeyboard.class);
+        registerRules(PeripheralOCScreen.class);
     }
 
     @Override

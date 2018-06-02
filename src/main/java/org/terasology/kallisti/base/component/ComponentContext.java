@@ -20,6 +20,9 @@ import org.terasology.kallisti.base.interfaces.Identifiable;
 
 /**
  * The context of a component, linking it to its in-game representation.
+ *
+ * Please note that a valid ComponentContext MUST implement equals() and
+ * hashCode().
  */
 public interface ComponentContext extends Identifiable {
 }
