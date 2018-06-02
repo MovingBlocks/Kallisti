@@ -16,29 +16,19 @@
 
 package org.terasology.kallisti.base.interfaces;
 
-import org.terasology.kallisti.base.component.ComponentInterface;
-import org.terasology.kallisti.base.util.Dimension;
-import org.terasology.kallisti.base.util.PixelDimension;
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
-/**
- * TODO: Is this temporary?
- */
-@ComponentInterface
-public interface FrameBuffer {
-    interface Image {
-        PixelDimension size();
-        int[] data();
-    }
-
-    interface Renderer extends Synchronizable.Receiver {
+public interface Synchronizable {
+    interface Receiver {
         void update(InputStream stream) throws IOException;
-        void render(FrameBuffer buffer);
     }
 
-    void bind(Synchronizable source, Renderer renderer);
-    Dimension aspectRatio();
-    void blit(Image image);
+    enum Type {
+        INITIAL,
+        DELTA;
+    }
+
+    void write(Type type, OutputStream stream) throws IOException;
 }

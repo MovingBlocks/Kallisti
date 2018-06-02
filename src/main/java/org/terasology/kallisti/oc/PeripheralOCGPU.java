@@ -19,88 +19,56 @@ package org.terasology.kallisti.oc;
 import org.terasology.kallisti.base.component.ComponentMethod;
 import org.terasology.kallisti.base.component.Peripheral;
 import org.terasology.kallisti.base.interfaces.FrameBuffer;
+import org.terasology.kallisti.base.interfaces.Synchronizable;
 import org.terasology.kallisti.base.util.KallistiColor;
 import org.terasology.kallisti.base.util.KallistiMath;
 
-public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
-    private final OCTextRenderer renderer;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.LinkedList;
+import java.util.List;
+
+public class PeripheralOCGPU implements Synchronizable, Peripheral {
+    private final OCGPURenderer renderer;
     private final MachineOpenComputers machine;
     private final int maxWidth, maxHeight, bitDepth;
-    private final int[] palette;
-
-    private int[] chars = new int[0];
-    private int[] bgs = new int[0];
-    private int[] fgs = new int[0];
+    private List<OCGPUCommand> commands;
 
     private String screenAddr;
-    private int width, height, bitDepthUsed;
     private int bgColor, fgColor;
-
-    public static int[] genThirdTierPalette() {
-        int[] pal = new int[256];
-        for (int i = 0; i < 16; i++) {
-            pal[i] = ((i + 1) * 255 / 17) * 0x10101;
-        }
-        for (int i = 0; i < 240; i++) {
-            int b = (i % 5) * 255 / 4;
-            int g = ((i / 5) % 8) * 255 / 7;
-            int r = ((i / 40) % 6) * 255 / 5;
-            pal[i + 16] = (r << 16) | (g << 8) | b;
-        }
-        return pal;
-    }
 
     public PeripheralOCGPU(MachineOpenComputers machine, int maxWidth, int maxHeight, int[] palette) {
         this.machine = machine;
-        this.renderer = new OCTextRenderer(machine.font);
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
-        this.palette = new int[KallistiMath.smallestContainingPowerTwo(palette.length)];
-        System.arraycopy(palette, 0, this.palette, 0, palette.length);
+
+        int[] resizedPalette = new int[KallistiMath.smallestContainingPowerTwo(palette.length)];
+        System.arraycopy(palette, 0, resizedPalette, 0, palette.length);
 
         this.bgColor = 0;
         this.fgColor = palette.length - 1;
 
-        this.bitDepth = KallistiMath.log2up(this.palette.length);
-        this.bitDepthUsed = this.bitDepth;
+        this.bitDepth = KallistiMath.log2up(resizedPalette.length);
+        this.commands = new LinkedList<>();
 
+        this.renderer = new OCGPURenderer(new OCTextRenderer(machine.font), resizedPalette, bitDepth);
         setResolution(maxWidth, maxHeight);
     }
 
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public int getCharAt(int x, int y) {
-        return chars[y * width + x];
-    }
-
-    public int getBGColorAt(int x, int y) {
-        return bgs[y * width + x];
-    }
-
-    public int getFGColorAt(int x, int y) {
-        return fgs[y * width + x];
-    }
-
-    private static int[] rescale(int[] array, int oldWidth, int oldHeight, int newWidth, int newHeight) {
-        int[] newArray = new int[newWidth * newHeight];
-        int xSize = Math.min(oldWidth, newWidth);
-        for (int iy = 0; iy < Math.min(oldHeight, newHeight); iy++) {
-            System.arraycopy(array, iy * oldWidth, newArray, iy * newWidth, xSize);
-        }
-        return newArray;
+	/**
+	 * Apply a command on the server side.
+	 */
+	protected void apply(OCGPUCommand command) {
+    	commands.add(command);
+    	command.apply(renderer);
     }
 
     @ComponentMethod
     public boolean bind(String address) {
         for (FrameBuffer b : machine.getComponentsByClass(FrameBuffer.class)) {
             if (machine.getComponentAddress(b).equals(address)) {
-                b.bind(this);
+                b.bind(this, renderer);
                 this.screenAddr = address;
                 return true;
             }
@@ -117,31 +85,32 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
     @ComponentMethod
     public int getPaletteColor(Number index) {
         int i = index.intValue();
-        return i >= 0 && i < palette.length ? palette[i] : 0;
+        return i >= 0 && i < renderer.getPaletteSize() ? renderer.getPaletteColor(i) : 0;
     }
 
     @ComponentMethod
     public void setPaletteColor(Number index, Number value) {
         int i = index.intValue();
-        if (i >= 0 && i < palette.length) {
-            palette[i] = value.intValue() & 0xFFFFFF;
+        if (i >= 0 && i < renderer.getAccessiblePaletteSize()) {
+            renderer.setPaletteColor(i, value.intValue() & 0xFFFFFF);
         }
     }
 
     @ComponentMethod(returnsMultipleArguments = true)
     public int[] getResolution() {
-        return new int[] { width, height };
+	    return new int[] { renderer.getWidth(), renderer.getHeight() };
     }
 
     // TODO: plan9k???
     @ComponentMethod(returnsMultipleArguments = true)
     public int[] getResolution(Object o) {
-        return new int[] { width, height };
+	    return new int[] { renderer.getWidth(), renderer.getHeight() };
     }
 
+    // TODO: Implement viewport size setting
     @ComponentMethod(returnsMultipleArguments = true)
     public int[] getViewport() {
-        return new int[] { width, height };
+        return new int[] { renderer.getWidth(), renderer.getHeight() };
     }
 
     @ComponentMethod(returnsMultipleArguments = true)
@@ -154,11 +123,7 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
         int width = widthN.intValue();
         int height = heightN.intValue();
         if (width <= maxWidth && height <= maxHeight && width > 0 && height > 0) {
-            this.chars = rescale(this.chars, this.width, this.height, width, height);
-            this.bgs = rescale(this.bgs, this.width, this.height, width, height);
-            this.fgs = rescale(this.fgs, this.width, this.height, width, height);
-            this.width = width;
-            this.height = height;
+            apply(new OCGPUCommand.SetResolution(width, height));
             return true;
         } else {
             return false;
@@ -170,9 +135,9 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
         int v = 0;
 
         for (int i = 0; i < colorCount; i++) {
-            int pcolor = palette[i];
+            int pcolor = renderer.getPaletteColor(i);
             if (pcolor == color) {
-                return pcolor;
+                return i;
             } else {
                 double diff = KallistiColor.distance(color, pcolor);
                 if (diff < distance) {
@@ -182,22 +147,17 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
             }
         }
 
-        return palette[v];
+        return v;
     }
 
-    private int[] getOldColorReturn(int oldColor) {
-        for (int i = 0; i < palette.length; i++) {
-            if (palette[i] == oldColor) {
-                return new int[] { oldColor, i };
-            }
-        }
-
-        return new int[] { oldColor };
+    // TODO: proper implementation (store old RGB & try to find) - refer to OC documentation
+    private int[] getOldColorReturn(int palIdx) {
+    	return new int[] { renderer.getPaletteColor(palIdx), palIdx };
     }
 
     @ComponentMethod
     public int getBackground() {
-        return bgColor;
+        return getPaletteColor(bgColor);
     }
 
     @ComponentMethod(returnsMultipleArguments = true)
@@ -208,10 +168,10 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
     @ComponentMethod(returnsMultipleArguments = true)
     public int[] setBackground(Number color, boolean isPaletteIndex) {
         int[] oldColorReturn = getOldColorReturn(bgColor);
-        int colorCount = 1 << bitDepthUsed;
+        int colorCount = renderer.getAccessiblePaletteSize();
 
         if (isPaletteIndex && color.intValue() >= 0 && color.intValue() < colorCount) {
-            bgColor = palette[color.intValue()];
+            bgColor = color.intValue();
         } else {
             bgColor = findNearest(color.intValue(), colorCount);
         }
@@ -221,7 +181,7 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
 
     @ComponentMethod
     public int getForeground() {
-        return fgColor;
+        return getPaletteColor(fgColor);
     }
 
     @ComponentMethod(returnsMultipleArguments = true)
@@ -232,10 +192,10 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
     @ComponentMethod(returnsMultipleArguments = true)
     public int[] setForeground(Number color, boolean isPaletteIndex) {
         int[] oldColorReturn = getOldColorReturn(fgColor);
-        int colorCount = 1 << bitDepthUsed;
+        int colorCount = renderer.getAccessiblePaletteSize();
 
         if (isPaletteIndex && color.intValue() >= 0 && color.intValue() < colorCount) {
-            fgColor = palette[color.intValue()];
+            fgColor = color.intValue();
         } else {
             fgColor = findNearest(color.intValue(), colorCount);
         }
@@ -245,7 +205,7 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
 
     @ComponentMethod
     public int getDepth() {
-        return bitDepthUsed;
+        return renderer.getBitDepthUsed();
     }
 
     @ComponentMethod
@@ -256,7 +216,7 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
     @ComponentMethod
     public boolean setDepth(int depth) {
         if (depth >= 1 && depth <= bitDepth) {
-            bitDepthUsed = depth;
+            renderer.setBitDepthUsed(depth);
             return true;
         } else {
             return false;
@@ -269,12 +229,11 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
         int xi = x.intValue();
         int yi = y.intValue();
 
-        if (xi >= 1 && yi >= 1 && xi <= width && yi <= height) {
-            int idx = (yi - 1) * width + (xi - 1);
-            int chr = chars[idx];
+        if (xi >= 1 && yi >= 1 && xi <= renderer.getWidth() && yi <= renderer.getHeight()) {
+            int chr = renderer.getChar(xi - 1, yi - 1);
             String s = new StringBuilder().appendCodePoint(chr).toString();
-            int[] bgColor = getOldColorReturn(bgs[idx]);
-            int[] fgColor = getOldColorReturn(fgs[idx]);
+            int[] bgColor = getOldColorReturn(renderer.getBG(xi - 1, yi - 1));
+            int[] fgColor = getOldColorReturn(renderer.getFG(xi - 1, yi - 1));
 
             if (bgColor.length == 2 && fgColor.length == 2) {
                 return new Object[] { s, fgColor[0], bgColor[0], fgColor[1], bgColor[1] };
@@ -288,18 +247,9 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
 
     @ComponentMethod
     public boolean fill(Number x, Number y, Number width, Number height, String c) {
-        if (c.length() == 1) {
+        if (c.length() >= 1) {
             int codePoint = c.codePointAt(0);
-            for (int iy = y.intValue(); iy < y.intValue() + height.intValue(); iy++) {
-                for (int ix = x.intValue(); ix < x.intValue() + width.intValue(); ix++) {
-                    if (ix >= 1 && iy >= 1 && ix <= this.width && iy <= this.height) {
-                        int idx = (iy - 1) * this.width + (ix - 1);
-                        chars[idx] = codePoint;
-                        bgs[idx] = bgColor;
-                        fgs[idx] = fgColor;
-                    }
-                }
-            }
+            apply(new OCGPUCommand.Fill(bgColor, fgColor, x.intValue(), y.intValue(), width.intValue(), height.intValue(), codePoint));
             return true;
         } else {
             return false;
@@ -312,21 +262,7 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
             return true;
         }
 
-        for (int iy = y.intValue(); iy < y.intValue() + height.intValue(); iy++) {
-            for (int ix = x.intValue(); ix < x.intValue() + width.intValue(); ix++) {
-                if (ix >= 1 && iy >= 1 && ix <= this.width && iy <= this.height) {
-                    int ox = ix + tx.intValue();
-                    int oy = iy + ty.intValue();
-                    if (ox >= 1 && oy >= 1 && ox <= this.width && oy <= this.height) {
-                        int idxSrc = (iy - 1) * this.width + (ix - 1);
-                        int idxDst = (oy - 1) * this.width + (ox - 1);
-                        chars[idxDst] = chars[idxSrc];
-                        bgs[idxDst] = bgs[idxSrc];
-                        fgs[idxDst] = fgs[idxSrc];
-                    }
-                }
-            }
-        }
+        apply(new OCGPUCommand.Copy(x.intValue(), y.intValue(), width.intValue(), height.intValue(), tx.intValue(), ty.intValue()));
         return true;
     }
 
@@ -337,28 +273,37 @@ public class PeripheralOCGPU implements FrameBuffer.Renderer, Peripheral {
 
     @ComponentMethod
     public boolean set(Number x, Number y, String value, boolean vertical) {
-        int pos = (y.intValue() - 1) * width + (x.intValue() - 1);
-        int add = vertical ? width : 1;
-        int maxPos = vertical ? (width * height) : (pos - (pos % width)) + width;
-
-        for (int i = 0; i < value.length(); i++) {
-            if (pos >= maxPos) break;
-            chars[pos] = value.codePointAt(i);
-            bgs[pos] = bgColor;
-            fgs[pos] = fgColor;
-            pos += add;
-        }
-
+		int maxLen = Math.max(maxWidth, maxHeight);
+		apply(new OCGPUCommand.Set(bgColor, fgColor, x.intValue(), y.intValue(), vertical, value.length() > maxLen ? value.substring(0, maxLen) : value));
         return true;
-    }
-
-    @Override
-    public void render(FrameBuffer buffer) {
-        buffer.blit(renderer.drawImage(this));
     }
 
     @Override
     public String type() {
         return "gpu";
     }
+
+	@Override
+	public void write(Type type, OutputStream stream) throws IOException {
+		DataOutputStream dataStream = new DataOutputStream(stream);
+		if (type == Type.DELTA && commands.size() > (maxHeight * maxWidth / 9)) {
+			type = Type.INITIAL;
+		}
+
+		if (type == Type.INITIAL) {
+			dataStream.writeByte(0x01); // header byte
+
+			renderer.writeInitialPacket(dataStream);
+		} else if (type == Type.DELTA) {
+			dataStream.writeByte(0x02); // header byte
+
+			dataStream.writeInt(commands.size());
+			for (OCGPUCommand command : commands) {
+				OCGPUCommand.write(command, dataStream);
+			}
+		}
+
+		commands.clear();
+		dataStream.close();
+	}
 }

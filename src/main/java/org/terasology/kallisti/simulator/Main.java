@@ -18,6 +18,7 @@ package org.terasology.kallisti.simulator;
 
 import org.terasology.kallisti.oc.MachineOpenComputers;
 import org.terasology.kallisti.oc.OCFont;
+import org.terasology.kallisti.oc.OCGPURenderer;
 import org.terasology.kallisti.oc.PeripheralOCGPU;
 
 import java.io.File;
@@ -55,7 +56,7 @@ public class Main {
                 (MachineOpenComputers) owner,
                 json.get("maxWidth").getAsInt(),
                 json.get("maxHeight").getAsInt(),
-                PeripheralOCGPU.genThirdTierPalette()
+                OCGPURenderer.genThirdTierPalette()
         ));
 
         Simulator simulator = new Simulator(manager, new File(args[0]));

@@ -19,11 +19,16 @@ package org.terasology.kallisti.simulator;
 import org.terasology.kallisti.base.component.ComponentEventListener;
 import org.terasology.kallisti.base.component.ComponentTickEvent;
 import org.terasology.kallisti.base.interfaces.FrameBuffer;
+import org.terasology.kallisti.base.interfaces.Synchronizable;
 import org.terasology.kallisti.base.util.PixelDimension;
+import org.terasology.kallisti.oc.OCGPURenderer;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class SimulatorFrameBufferWindow implements FrameBuffer {
     public class Canvas extends JComponent {
@@ -38,7 +43,9 @@ public class SimulatorFrameBufferWindow implements FrameBuffer {
     private final JFrame window;
     private final Canvas canvas;
     private BufferedImage image;
-    private Renderer renderer;
+    private Synchronizable source;
+    private Renderer rendererSrc, rendererDst;
+    private boolean sentInitialPacket = false;
 
     public SimulatorFrameBufferWindow(String windowName) {
         window = new JFrame(windowName);
@@ -47,21 +54,53 @@ public class SimulatorFrameBufferWindow implements FrameBuffer {
         window.setVisible(true);
     }
 
-    @Override
-    public void bind(Renderer renderer) {
-        this.renderer = renderer;
-    }
-
+    // TODO: hardcoded
     @ComponentEventListener
     public void update(ComponentTickEvent event) {
-        if (renderer != null) {
-            renderer.render(this);
-            Dimension d = new Dimension(image.getWidth(), image.getHeight());
-            canvas.setSize(d);
-            canvas.setPreferredSize(d);
-            window.pack();
+        if (source != null && rendererSrc != null) {
+            if (rendererDst != null) {
+                // send source to renderer
+                try {
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+                    source.write(sentInitialPacket ? Synchronizable.Type.DELTA : Synchronizable.Type.INITIAL, outputStream);
+
+                    ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+                    outputStream.close();
+
+                    rendererDst.update(inputStream);
+
+                    inputStream.close();
+                    sentInitialPacket = true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                rendererDst.render(this);
+            } else {
+                rendererSrc.render(this);
+            }
+            Dimension oldDim = canvas.getPreferredSize();
+            Dimension dim = new Dimension(image.getWidth(), image.getHeight());
+            canvas.setSize(dim);
+            canvas.setPreferredSize(dim);
+            if (!dim.equals(oldDim)) {
+                window.pack();
+            }
             canvas.repaint();
         }
+    }
+
+    @Override
+    public void bind(Synchronizable source, Renderer renderer) {
+        this.source = source;
+        this.rendererSrc = renderer;
+        /* if (renderer instanceof OCGPURenderer) {
+            this.rendererDst = new OCGPURenderer(((OCGPURenderer) renderer).getTextRenderer());
+        } else {
+            this.rendererDst = null;
+        } */
+        this.sentInitialPacket = false;
     }
 
     @Override

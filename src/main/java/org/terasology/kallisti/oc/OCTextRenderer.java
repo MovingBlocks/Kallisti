@@ -26,7 +26,7 @@ public class OCTextRenderer {
         this.font = font;
     }
 
-    public FrameBuffer.Image drawImage(PeripheralOCGPU gpu) {
+    public FrameBuffer.Image drawImage(OCGPURenderer gpu) {
         if (gpu.getWidth() == 0 || gpu.getHeight() == 0) {
             return new SimpleFrameBufferImage(1, 1);
         }
@@ -34,8 +34,8 @@ public class OCTextRenderer {
         FrameBuffer.Image image = new SimpleFrameBufferImage(gpu.getWidth()*8, gpu.getHeight()*font.getFontHeight());
         for (int y = 0; y < gpu.getHeight(); y++) {
             for (int x = 0; x < gpu.getWidth(); x++) {
-                int w = drawChar(image, x*8, y*font.getFontHeight(), gpu.getCharAt(x, y), gpu.getBGColorAt(x, y), gpu.getFGColorAt(x, y));
-                if (w >= 16) x++;
+                int w = drawChar(image, x*8, y*font.getFontHeight(), gpu.getChar(x, y), gpu.getPaletteColor(gpu.getBG(x, y)), gpu.getPaletteColor(gpu.getFG(x, y)));
+                x += (w / 8) - 1;
             }
         }
         return image;
