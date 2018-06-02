@@ -16,7 +16,10 @@
 
 package org.terasology.kallisti.oc;
 
-public class MultiArgReturn {
+/**
+ * Container for multiple-argument returns. Internal.
+ */
+class MultiArgReturn {
 	private final Object[] returns;
 
 	public MultiArgReturn(Object... returns) {

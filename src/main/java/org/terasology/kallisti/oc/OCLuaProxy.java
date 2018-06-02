@@ -16,8 +16,16 @@
 
 package org.terasology.kallisti.oc;
 
-// TODO: document
-public interface LuaProxy<T> {
+/**
+ * This interface is used by the internal "userdata" library in OpenComputers
+ * for proxying certain metamethod calls for Java-originating objects.
+ *
+ * You may either implement it on the class or register it through
+ * a method in MachineOpenComputers.
+ *
+ * @param <T> The type this interface handles.
+ */
+public interface OCLuaProxy<T> {
     Object index(T object, Object key);
 
     default void newindex(T object, Object key, Object value) {

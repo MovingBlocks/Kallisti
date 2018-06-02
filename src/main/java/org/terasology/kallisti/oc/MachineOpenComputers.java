@@ -72,8 +72,8 @@ public class MachineOpenComputers extends Machine {
         state.openLib(LuaState.Library.OS);
         state.pop(1);
 
-        addLuaProxy(List.class, new LuaProxyList());
-        addLuaProxy(Map.class, new LuaProxyMap());
+        addLuaProxy(List.class, new OCLuaProxyList());
+        addLuaProxy(Map.class, new OCLuaProxyMap());
 
         addComponent(selfContext, peripheralComputer = new PeripheralOCComputer());
 
@@ -92,22 +92,41 @@ public class MachineOpenComputers extends Machine {
         }
     }
 
+    /**
+     * Push a new signal to the OpenComputers signal queue. The first
+     * parameter is expected to be of type String by most OpenComputers
+     * software.
+     * @param args The signal, as an array of arguments.
+     */
     public void pushSignal(Object... args) {
         signalQueue.add(args);
     }
 
-    public void addLuaProxy(Class c, LuaProxy proxy) {
+    /**
+     * Register a OCLuaProxy for a given class.
+     * @param c The class.
+     * @param proxy The OCLuaProxy instance.
+     */
+    public void addLuaProxy(Class c, OCLuaProxy proxy) {
         shimUserdata.proxyMap.put(c, proxy);
     }
 
+    /**
+     * @return The OpenComputers-style address of the PeripheralOCComputer instance.
+     */
     public String getComputerAddress() {
         return getComponentAddress(peripheralComputer);
     }
 
-    public LuaState getLuaState() {
+    protected LuaState getLuaState() {
         return state;
     }
 
+    /**
+     * Retrieve the OpenComputers-defined "type" of a component.
+     * @param o The component object.
+     * @return The type, as a string.
+     */
     public String getComponentType(Object o) {
         if (!(o instanceof Peripheral)) {
             return "none";
@@ -116,11 +135,22 @@ public class MachineOpenComputers extends Machine {
         }
     }
 
+    /**
+     * Retrieve the OpenComputers-defined "address" of a component.
+     * @param o The component object.
+     * @return The address UUID, as a string.
+     */
     public String getComponentAddress(Object o) {
         ComponentContext context = o instanceof ComponentContext ? (ComponentContext) o : getContext(o);
         return context != null ? UUID.nameUUIDFromBytes(context.identifier().getBytes(Charset.forName("UTF-8"))).toString() : null;
     }
 
+    /**
+     * Retrieve a component implementing Peripheral with a given
+     * OpenComputers-defined "address".
+     * @param address The OC-style address.
+     * @return The peripheral, or null if none found.
+     */
     public Object getPeripheral(String address) {
         return peripheralAddressMap.get(address);
     }
@@ -133,10 +163,16 @@ public class MachineOpenComputers extends Machine {
     private Object[] lastReturned;
     private double lastReturnedTime, time = 0, cpuTime = 0;
 
+    /**
+     * @return The virtual machine CPU time, in seconds.
+     */
     public double getCpuTime() {
         return cpuTime;
     }
 
+    /**
+     * @return The virtual machine uptime, in seconds.
+     */
     public double getTime() {
         return time;
     }
@@ -174,10 +210,9 @@ public class MachineOpenComputers extends Machine {
             }
         }
 
-        // TODO: I think this may need microsecond accuracy, if possible?
-        long cpuTimeStart = System.currentTimeMillis();
+        long cpuTimeStart = System.nanoTime();
         int ret = state.resume(1, inArgs);
-        cpuTime += (System.currentTimeMillis() - cpuTimeStart) / 1000.0;
+        cpuTime += (System.nanoTime() - cpuTimeStart) / 1_000_000_000.0;
 
         if (ret == LuaState.YIELD) {
             int count = Math.min(state.getTop() - 1, ret);

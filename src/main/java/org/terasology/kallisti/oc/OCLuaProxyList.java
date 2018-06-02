@@ -16,16 +16,30 @@
 
 package org.terasology.kallisti.oc;
 
-import java.util.Map;
+import java.util.List;
 
-public class LuaProxyMap implements LuaProxy<Map> {
+public class OCLuaProxyList implements OCLuaProxy<List> {
     @Override
-    public Object index(Map object, Object key) {
-        return object.get(key);
+    public Object index(List object, Object key) {
+        if (key instanceof Number) {
+            int p = ((Number) key).intValue() - 1;
+            if (p >= 0 && p < object.size()) {
+                return object.get(p);
+            }
+        } else if ("n".equals(key)) {
+            return object.size();
+        }
+
+        return null;
     }
 
     @Override
-    public void newindex(Map object, Object key, Object value) {
-        object.put(key, value);
+    public void newindex(List object, Object key, Object value) {
+        if (key instanceof Number) {
+            int p = ((Number) key).intValue() - 1;
+            if (p >= 0 && p < object.size()) {
+                object.set(p, value);
+            }
+        }
     }
 }

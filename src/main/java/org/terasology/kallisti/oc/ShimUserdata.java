@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ShimUserdata extends ShimInvoker<Object> {
-    final Map<Class, LuaProxy> proxyMap = new HashMap<>();
+    final Map<Class, OCLuaProxy> proxyMap = new HashMap<>();
 
     public ShimUserdata(MachineOpenComputers machine) {
         super(machine);
@@ -33,8 +33,12 @@ public class ShimUserdata extends ShimInvoker<Object> {
         return value;
     }
 
-    protected LuaProxy getProxyOrThrow(Object entry) {
-        LuaProxy luaProxy = KallistiReflect.findClosestMatchingClass(proxyMap, entry.getClass());
+    protected OCLuaProxy getProxyOrThrow(Object entry) {
+        if (entry instanceof OCLuaProxy) {
+            return (OCLuaProxy) entry;
+        }
+
+        OCLuaProxy luaProxy = KallistiReflect.findClosestMatchingClass(proxyMap, entry.getClass());
         if (luaProxy != null) {
             return luaProxy;
         } else {
