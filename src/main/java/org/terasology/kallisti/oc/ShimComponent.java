@@ -17,6 +17,7 @@
 package org.terasology.kallisti.oc;
 
 import org.terasology.kallisti.base.component.ComponentContext;
+import org.terasology.kallisti.base.component.ComponentMethod;
 import org.terasology.kallisti.base.component.Peripheral;
 import org.terasology.jnlua.LuaState;
 import org.terasology.jnlua.LuaValueProxy;
@@ -31,28 +32,34 @@ public class ShimComponent extends ShimInvoker<Object> {
 		return value instanceof String ? machine.getPeripheral((String) value) : null;
 	}
 
+	@ComponentMethod
 	public String doc(String address, String method) {
 		return "";
 	}
 
+	@ComponentMethod
 	public String type(String address) {
 		Object o = get(address);
 		return machine.getComponentType(o);
 	}
 
+	@ComponentMethod
 	public String slot(String address) {
 		// TODO
 		return "unknown";
 	}
 
+	@ComponentMethod
 	public LuaValueProxy list() {
 		return list(null, true);
 	}
 
+	@ComponentMethod
 	public LuaValueProxy list(String filter) {
 		return list(filter, false);
 	}
 
+	@ComponentMethod
 	public LuaValueProxy list(String filter, boolean exact) {
 		LuaState state = machine.getLuaState();
 		state.newTable();

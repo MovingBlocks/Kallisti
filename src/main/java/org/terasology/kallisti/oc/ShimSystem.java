@@ -16,6 +16,8 @@
 
 package org.terasology.kallisti.oc;
 
+import org.terasology.kallisti.base.component.ComponentMethod;
+
 public class ShimSystem {
 	private final MachineOpenComputers machine;
 
@@ -23,14 +25,17 @@ public class ShimSystem {
 		this.machine = machine;
 	}
 
+	@ComponentMethod
 	public double timeout() {
 		return 1.0; // TODO
 	}
 
+	@ComponentMethod
 	public boolean allowBytecode() {
 		return false; // TODO
 	}
 
+	@ComponentMethod
 	public boolean allowGC() {
 		return false; // TODO
 	}

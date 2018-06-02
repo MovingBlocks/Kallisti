@@ -33,7 +33,8 @@ public abstract class ShimInvoker<V> {
 
     protected abstract V get(Object value);
 
-    public MultiArgReturn invoke(Object key, String name, Object... args) {
+    @ComponentMethod(returnsMultipleArguments = true)
+    public Object[] invoke(Object key, String name, Object... args) {
 //        System.out.println("[" + getClass().getSimpleName() + "] invoke " + name + "(" + args.length + ")");
         V p = get(key);
         if (p == null) {
@@ -41,17 +42,22 @@ public abstract class ShimInvoker<V> {
         }
 
         for (Method m : p.getClass().getMethods()) {
-            // TODO: Check for argument count/type match
-            if (m.getName().equals(name) && (m.isVarArgs() || m.getParameterCount() == args.length)) {
-                ComponentMethod pm;
-                if ((pm = m.getAnnotation(ComponentMethod.class)) != null) {
+            ComponentMethod pm;
+            if ((pm = m.getAnnotation(ComponentMethod.class)) != null) {
+                String methodName = pm.name();
+                if (methodName.isEmpty()) {
+                    methodName = m.getName();
+                }
+
+                // TODO: Check for argument count/type match
+                if (methodName.equals(name) && (m.isVarArgs() || m.getParameterCount() == args.length)) {
                     Object o;
                     try {
                         o = m.invoke(p, args);
                     } catch (InvocationTargetException e) {
-                        return new MultiArgReturn(false, e.getTargetException().getMessage());
+                        return new Object[] { false, e.getTargetException().getMessage() };
                     } catch (IllegalAccessException e) {
-                        return new MultiArgReturn(false, e.getMessage());
+                        return new Object[] { false, e.getMessage() };
                     }
 
                     Object[] returns = null;
@@ -73,14 +79,15 @@ public abstract class ShimInvoker<V> {
                         }
                     }
                     returns[0] = true;
-                    return new MultiArgReturn(returns);
+                    return returns;
                 }
             }
         }
 
-        return new MultiArgReturn(false, "could not find method " + name);
+        return new Object[] { false, "could not find method " + name };
     }
 
+    @ComponentMethod(returnsMultipleArguments = true)
     public LuaValueProxy methods(Object key) {
         V p = get(key);
         if (p == null) {
@@ -96,7 +103,7 @@ public abstract class ShimInvoker<V> {
                 state.pushBoolean(!pm.synchronize());
                 state.setField(-2, "direct");
 
-                state.setField(-2, m.getName());
+                state.setField(-2, pm.name().isEmpty() ? m.getName() : pm.name());
             }
         }
 

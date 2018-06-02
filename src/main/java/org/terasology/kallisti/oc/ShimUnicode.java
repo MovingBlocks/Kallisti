@@ -16,6 +16,8 @@
 
 package org.terasology.kallisti.oc;
 
+import org.terasology.kallisti.base.component.ComponentMethod;
+
 import java.util.Locale;
 
 public class ShimUnicode {
@@ -34,10 +36,12 @@ public class ShimUnicode {
         }
     }
 
+    @ComponentMethod
     public int len(String s) {
         return s.length();
     }
 
+    @ComponentMethod
     public int wlen(String s) {
         int len = 0;
         for (int i = 0; i < s.length(); i++) {
@@ -46,6 +50,7 @@ public class ShimUnicode {
         return len;
     }
 
+    @ComponentMethod
     public int charWidth(String s) {
         if (s.length() == 0) {
             return 0;
@@ -54,10 +59,12 @@ public class ShimUnicode {
         return getCharWidth(s.codePointAt(0));
     }
 
+    @ComponentMethod
     public boolean isWide(String s) {
         return charWidth(s) > 1;
     }
 
+    @ComponentMethod
     public String wtrunc(String s, int len) {
         if (len <= 1) {
             return "";
@@ -71,14 +78,17 @@ public class ShimUnicode {
         }
     }
 
+    @ComponentMethod
     public String lower(String s) {
         return s.toLowerCase(Locale.ENGLISH);
     }
 
+    @ComponentMethod
     public String upper(String s) {
         return s.toUpperCase(Locale.ENGLISH);
     }
 
+    @ComponentMethod
     public String reverse(String s) {
         StringBuilder b = new StringBuilder();
         for (int i = s.length() - 1; i >= 0; i--) {
@@ -87,6 +97,7 @@ public class ShimUnicode {
         return b.toString();
     }
 
+    @ComponentMethod(name = "char")
     public String __char(Object... values) {
         StringBuilder builder = new StringBuilder();
         for (Object n : values) {
@@ -99,10 +110,12 @@ public class ShimUnicode {
         return builder.toString();
     }
 
+    @ComponentMethod
     public String sub(String s, int i) {
         return sub(s, i, -1);
     }
 
+    @ComponentMethod
     public String sub(String s, int i, int j) {
         if (i < 0) i = s.length() + (i + 1);
         if (j < 0) j = s.length() + (j + 1);

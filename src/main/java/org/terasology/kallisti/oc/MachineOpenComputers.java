@@ -41,8 +41,8 @@ public class MachineOpenComputers extends Machine {
 
     private PeripheralOCComputer peripheralComputer;
 
-    public MachineOpenComputers(File root, ComponentContext selfContext, OCFont font) {
-        this.machineJson = root;
+    public MachineOpenComputers(File machineJson, ComponentContext selfContext, OCFont font) {
+        this.machineJson = machineJson;
         this.font = font;
         this.state = new LuaState();
 

@@ -20,6 +20,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Method;
 
 /**
  * Marks a method in an object-based peripheral which should be exposed
@@ -28,6 +29,12 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface ComponentMethod {
+    /**
+     * @return The target name of the method. If empty, the Java method name
+     * is used.
+     */
+    String name() default "";
+
     /**
      * @return If this is true and the method's return type is an array,
      * the array will be returned as multiple arguments on compatible

@@ -16,7 +16,7 @@
 
 package org.terasology.kallisti.jnlua;
 
-import org.terasology.kallisti.oc.MultiArgReturn;
+import org.terasology.kallisti.base.component.ComponentMethod;
 import org.terasology.jnlua.LuaRuntimeException;
 import org.terasology.jnlua.LuaState;
 import org.terasology.jnlua.NamedJavaFunction;
@@ -78,12 +78,25 @@ public final class KallistiGlobalRegistry {
 
 			try {
 				Object o = m.invoke(obj, arguments);
+
+				boolean isMultiArg = false;
+				ComponentMethod cm;
+				if ((cm = m.getAnnotation(ComponentMethod.class)) != null) {
+					isMultiArg = cm.returnsMultipleArguments();
+				}
+
 				if (m.getReturnType() == Void.TYPE) {
 					return 0;
-				} else if (o instanceof MultiArgReturn) {
-					Object[] values = ((MultiArgReturn) o).getValues();
-					Arrays.asList(values).forEach(luaState::pushJavaObject);
-					return values.length;
+				} else if (isMultiArg && m.getReturnType().isArray()) {
+					if (o == null) {
+						return 0;
+					}
+
+					int alen = Array.getLength(o);
+					for (int i = 0; i < alen; i++) {
+						luaState.pushJavaObject(Array.get(o, i));
+					}
+					return alen;
 				} else {
 					luaState.pushJavaObject(o);
 					return 1;
@@ -106,8 +119,15 @@ public final class KallistiGlobalRegistry {
 		Map<String, Func> funcMap = new HashMap<>();
 
 		for (Method m : c.getMethods()) {
-			// TODO: remove ugly __ hack
-			final String methodName = m.getName().startsWith("__") ? m.getName().substring(2) : m.getName();
+			if (m.getAnnotation(ComponentMethod.class) == null) {
+				continue;
+			}
+
+			String methodName = m.getAnnotation(ComponentMethod.class).name();
+			if (methodName.isEmpty()) {
+				methodName = m.getName();
+			}
+
 			funcMap.computeIfAbsent(methodName, (s) -> new Func(s, obj)).methods.add(m);
 		}
 

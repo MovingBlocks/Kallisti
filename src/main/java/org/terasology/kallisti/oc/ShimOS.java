@@ -17,6 +17,7 @@
 package org.terasology.kallisti.oc;
 
 import org.terasology.jnlua.LuaValueProxy;
+import org.terasology.kallisti.base.component.ComponentMethod;
 
 public class ShimOS {
     private final MachineOpenComputers machine;
@@ -25,23 +26,28 @@ public class ShimOS {
         this.machine = machine;
     }
 
+    @ComponentMethod
     public double clock() {
         return machine.getCpuTime();
     }
 
+    @ComponentMethod
     public long time(Object table) {
         // TODO
         return 0;
     }
 
+    @ComponentMethod
     public LuaValueProxy date() {
         return date("%c");
     }
 
+    @ComponentMethod
     public LuaValueProxy date(String format) {
         return date("%c", System.currentTimeMillis() / 1000);
     }
 
+    @ComponentMethod
     public LuaValueProxy date(String format, Number time) {
         return null; // TODO
     }
