@@ -16,6 +16,8 @@
 
 package org.terasology.kallisti.simulator;
 
+import org.terasology.jnlua.LuaState52;
+import org.terasology.jnlua.LuaState53;
 import org.terasology.kallisti.oc.MachineOpenComputers;
 import org.terasology.kallisti.oc.OCFont;
 import org.terasology.kallisti.oc.OCGPURenderer;
@@ -32,7 +34,9 @@ public class Main {
                 new OCFont(
                         new File(json.get("font").getAsString()),
                         json.get("fontHeight").getAsInt()
-                )
+                ),
+                json.has("luaVersion") && "5.2".equals(json.get("luaVersion").getAsString()) ? LuaState52.class : LuaState53.class,
+                json.has("persistence") ? json.get("persistence").getAsString() : null
         ));
 
         manager.register("InMemoryStaticByteStorage", (owner, context, json) -> new InMemoryStaticByteStorage(

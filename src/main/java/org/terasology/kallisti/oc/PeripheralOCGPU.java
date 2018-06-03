@@ -134,6 +134,12 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral {
         double distance = Double.MAX_VALUE;
         int v = 0;
 
+        // Special case (as per OC documentation): If only 1-bit and color 0 is zeroes,
+        // all non-0 values round to color 1.
+        if (renderer.getAccessiblePaletteSize() == 2 && renderer.getPaletteColor(0) == 0x000000) {
+            return (color & 0xFFFFFF) == 0 ? 1 : 0;
+        }
+
         for (int i = 0; i < colorCount; i++) {
             int pcolor = renderer.getPaletteColor(i);
             if (pcolor == color) {
@@ -150,7 +156,6 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral {
         return v;
     }
 
-    // TODO: proper implementation (store old RGB & try to find) - refer to OC documentation
     private int[] getOldColorReturn(int palIdx) {
     	return new int[] { renderer.getPaletteColor(palIdx), palIdx };
     }

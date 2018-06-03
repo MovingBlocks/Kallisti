@@ -54,7 +54,6 @@ public class SimulatorFrameBufferWindow implements FrameBuffer {
         window.setVisible(true);
     }
 
-    // TODO: hardcoded
     @ComponentEventListener
     public void update(ComponentTickEvent event) {
         if (source != null && rendererSrc != null) {
@@ -95,6 +94,7 @@ public class SimulatorFrameBufferWindow implements FrameBuffer {
     public void bind(Synchronizable source, Renderer renderer) {
         this.source = source;
         this.rendererSrc = renderer;
+        // TODO: Add logic to spawn the new Renderer?
         /* if (renderer instanceof OCGPURenderer) {
             this.rendererDst = new OCGPURenderer(((OCGPURenderer) renderer).getTextRenderer());
         } else {

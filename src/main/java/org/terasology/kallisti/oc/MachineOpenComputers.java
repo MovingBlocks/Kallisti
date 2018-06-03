@@ -16,6 +16,7 @@
 
 package org.terasology.kallisti.oc;
 
+import org.terasology.jnlua.LuaState53;
 import org.terasology.kallisti.base.component.ComponentContext;
 import org.terasology.kallisti.base.component.Machine;
 import org.terasology.kallisti.base.component.Peripheral;
@@ -40,11 +41,20 @@ public class MachineOpenComputers extends Machine {
     private final ShimUserdata shimUserdata;
 
     private PeripheralOCComputer peripheralComputer;
+    private final String persistenceKey;
 
-    public MachineOpenComputers(File machineJson, ComponentContext selfContext, OCFont font) {
+    public MachineOpenComputers(File machineJson, ComponentContext selfContext, OCFont font, Class<? extends LuaState> luaClass, boolean enablePersistence) {
+        this(machineJson, selfContext, font, luaClass, enablePersistence ? "__persist_" + UUID.randomUUID().toString() : null);
+    }
+
+    public MachineOpenComputers(File machineJson, ComponentContext selfContext, OCFont font, Class<? extends LuaState> luaClass, String persistenceKey) {
         this.machineJson = machineJson;
         this.font = font;
-        this.state = new LuaState();
+        try {
+            this.state = luaClass.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         KallistiConverter converter = new KallistiConverter(state.getConverter());
 
@@ -54,9 +64,40 @@ public class MachineOpenComputers extends Machine {
         state.openLib(LuaState.Library.COROUTINE);
         state.openLib(LuaState.Library.TABLE);
         state.openLib(LuaState.Library.DEBUG);
-        state.openLib(LuaState.Library.UTF8);
-        state.openLib(LuaState.Library.ERIS);
-        state.pop(8);
+        state.pop(6);
+
+        if (state instanceof LuaState53) {
+            state.openLib(LuaState.Library.UTF8);
+            state.pop(1);
+        } else {
+            state.openLib(LuaState.Library.BIT32);
+            state.pop(1);
+        }
+
+        try {
+            state.openLib(LuaState.Library.ERIS);
+            state.pop(1);
+        } catch (IllegalArgumentException e) {
+            persistenceKey = null;
+        }
+
+        this.persistenceKey = persistenceKey;
+        if (isPersistenceEnabled()) {
+            // Configure Eris
+            state.getGlobal("eris");
+            state.getField(-1, "settings");
+            state.pushString("spkey");
+            state.pushString(persistenceKey);
+            state.call(2, 0);
+            state.pop(1);
+
+            // Add persistKey()
+            state.pushJavaFunction((s) -> {
+                s.pushString(this.persistenceKey);
+                return 1;
+            });
+            state.setGlobal("persistKey");
+        }
 
         state.setConverter(converter);
 
@@ -81,6 +122,10 @@ public class MachineOpenComputers extends Machine {
         registerRules(PeripheralOCFilesystem.class);
         registerRules(PeripheralOCKeyboard.class);
         registerRules(PeripheralOCScreen.class);
+    }
+
+    public boolean isPersistenceEnabled() {
+        return persistenceKey != null;
     }
 
     @Override

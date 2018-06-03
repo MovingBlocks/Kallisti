@@ -40,12 +40,12 @@ public class SimulatorFileSystem implements FileSystem {
 
     @Override
     public List<Metadata> list(String path) {
-        String pathPref = path.endsWith("/") ? path : (path + "/");
+        String pathPrefixed = path.endsWith("/") ? path : (path + "/");
 
         List<Metadata> l = new ArrayList<>();
         try {
             for (java.io.File f : toFile(path).listFiles()) {
-                l.add(new FSMetadataJavaIO(f, path + f.getName()));
+                l.add(new FSMetadataJavaIO(f, pathPrefixed + f.getName()));
             }
             return l;
         } catch (NullPointerException e) {

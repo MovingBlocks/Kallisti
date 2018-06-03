@@ -16,7 +16,6 @@
 
 package org.terasology.kallisti.oc;
 
-import org.terasology.kallisti.base.component.ComponentMethod;
 import org.terasology.kallisti.base.interfaces.FrameBuffer;
 
 import java.io.DataInputStream;
