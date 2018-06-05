@@ -165,7 +165,7 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
     public void fill(int bg, int fg, int x, int y, int width, int height, int codepoint) {
         for (int iy = y; iy < y + height; iy++) {
             for (int ix = x; ix < x + width; ix++) {
-                if (ix >= 1 && iy >= 1 && ix <= width && iy <= height) {
+                if (ix >= 1 && iy >= 1 && ix <= this.width && iy <= this.height) {
                     int idx = (iy - 1) * this.width + (ix - 1);
                     chars[idx] = codepoint;
                     bgs[idx] = bg;
@@ -195,15 +195,19 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
 
     public void set(int bg, int fg, int x, int y, boolean vertical, String value) {
         int pos = (y - 1) * width + (x - 1);
-        int add = vertical ? width : 1;
-        int maxPos = vertical ? (width * height) : (pos - (pos % width)) + width;
+        int maxPos = vertical ? (width * height) : (y * width);
 
         for (int i = 0; i < value.length(); i++) {
             if (pos >= maxPos) break;
-            chars[pos] = value.codePointAt(i);
+            int code = value.codePointAt(i);
+            chars[pos] = code;
             bgs[pos] = bg;
             fgs[pos] = fg;
-            pos += add;
+            if (vertical) {
+                pos += width;
+            } else {
+                pos += textRenderer.getFont().getCharWidth(code);
+            }
         }
     }
 

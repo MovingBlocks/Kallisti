@@ -43,15 +43,19 @@ public class MachineOpenComputers extends Machine {
     private PeripheralOCComputer peripheralComputer;
     private final String persistenceKey;
 
-    public MachineOpenComputers(File machineJson, ComponentContext selfContext, OCFont font, Class<? extends LuaState> luaClass, boolean enablePersistence) {
-        this(machineJson, selfContext, font, luaClass, enablePersistence ? "__persist_" + UUID.randomUUID().toString() : null);
+    public MachineOpenComputers(File machineJson, ComponentContext selfContext, OCFont font, int memorySize, Class<? extends LuaState> luaClass, boolean enablePersistence) {
+        this(machineJson, selfContext, font, memorySize, luaClass, enablePersistence ? "__persist_" + UUID.randomUUID().toString() : null);
     }
 
-    public MachineOpenComputers(File machineJson, ComponentContext selfContext, OCFont font, Class<? extends LuaState> luaClass, String persistenceKey) {
+    public MachineOpenComputers(File machineJson, ComponentContext selfContext, OCFont font, int memorySize, Class<? extends LuaState> luaClass, String persistenceKey) {
         this.machineJson = machineJson;
         this.font = font;
         try {
-            this.state = luaClass.newInstance();
+            if (memorySize > 0) {
+                this.state = luaClass.getConstructor(int.class).newInstance(memorySize);
+            } else {
+                this.state = luaClass.newInstance();
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

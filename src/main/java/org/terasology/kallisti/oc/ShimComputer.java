@@ -48,13 +48,12 @@ public class ShimComputer {
 
 	@ComponentMethod
 	public int freeMemory() {
-		return 0;
+		return machine.getLuaState().getFreeMemory();
 	}
 
 	@ComponentMethod
 	public int totalMemory() {
-		return 0;
-		// return machine.getLuaState().getTotalMemory();
+		return machine.getLuaState().getTotalMemory();
 	}
 
 	@ComponentMethod

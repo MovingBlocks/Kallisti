@@ -5,7 +5,9 @@
     "font": "./assets/opencomputers/font.hex",
     "fontHeight": 16,
     "type": "MachineOpenComputers",
-    "machineFile": "./assets/opencomputers/lua/machine.lua"
+    "machineFile": "./assets/opencomputers/lua/machine.lua",
+    "memory": 1048576,
+    "luaVersion": "5.3"
   },
   "tickDuration": 0.05,
   "components": [

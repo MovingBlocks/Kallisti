@@ -57,4 +57,8 @@ public class OCTextRenderer {
 
         return fontWidth;
     }
+
+    public OCFont getFont() {
+        return font;
+    }
 }

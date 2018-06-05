@@ -21,7 +21,6 @@ import org.terasology.kallisti.base.component.ComponentTickEvent;
 import org.terasology.kallisti.base.interfaces.FrameBuffer;
 import org.terasology.kallisti.base.interfaces.Synchronizable;
 import org.terasology.kallisti.base.util.PixelDimension;
-import org.terasology.kallisti.oc.OCGPURenderer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -62,7 +61,7 @@ public class SimulatorFrameBufferWindow implements FrameBuffer {
                 try {
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-                    source.write(sentInitialPacket ? Synchronizable.Type.DELTA : Synchronizable.Type.INITIAL, outputStream);
+                    source.writeSyncPacket(sentInitialPacket ? Synchronizable.Type.DELTA : Synchronizable.Type.INITIAL, outputStream);
 
                     ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
                     outputStream.close();

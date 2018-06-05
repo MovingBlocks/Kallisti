@@ -30,5 +30,6 @@ public interface Synchronizable {
         DELTA;
     }
 
-    void write(Type type, OutputStream stream) throws IOException;
+    boolean hasSyncPacket(Type type);
+    void writeSyncPacket(Type type, OutputStream stream) throws IOException;
 }

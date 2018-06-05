@@ -278,7 +278,7 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral {
 
     @ComponentMethod
     public boolean set(Number x, Number y, String value, boolean vertical) {
-		int maxLen = Math.max(maxWidth, maxHeight);
+		int maxLen = vertical ? (maxHeight - (y.intValue() - 1)) : (maxWidth - (x.intValue() - 1));
 		apply(new OCGPUCommand.Set(bgColor, fgColor, x.intValue(), y.intValue(), vertical, value.length() > maxLen ? value.substring(0, maxLen) : value));
         return true;
     }
@@ -288,8 +288,13 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral {
         return "gpu";
     }
 
-	@Override
-	public void write(Type type, OutputStream stream) throws IOException {
+    @Override
+    public boolean hasSyncPacket(Type type) {
+        return type == Type.INITIAL || !commands.isEmpty();
+    }
+
+    @Override
+	public void writeSyncPacket(Type type, OutputStream stream) throws IOException {
 		DataOutputStream dataStream = new DataOutputStream(stream);
 		if (type == Type.DELTA && commands.size() > (maxHeight * maxWidth / 9)) {
 			type = Type.INITIAL;

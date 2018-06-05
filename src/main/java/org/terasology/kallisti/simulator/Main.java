@@ -35,6 +35,7 @@ public class Main {
                         new File(json.get("font").getAsString()),
                         json.get("fontHeight").getAsInt()
                 ),
+                json.has("memory") ? json.get("memory").getAsInt() : 0,
                 json.has("luaVersion") && "5.2".equals(json.get("luaVersion").getAsString()) ? LuaState52.class : LuaState53.class,
                 json.has("persistence") ? json.get("persistence").getAsString() : null
         ));
