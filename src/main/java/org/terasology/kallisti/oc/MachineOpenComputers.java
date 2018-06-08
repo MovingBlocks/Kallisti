@@ -281,4 +281,11 @@ public class MachineOpenComputers extends Machine {
 
         return true;
     }
+
+    /**
+     * @return The character set used by the Lua virtual machine.
+     */
+    public Charset getCharset() {
+        return getLuaState().getCharset();
+    }
 }

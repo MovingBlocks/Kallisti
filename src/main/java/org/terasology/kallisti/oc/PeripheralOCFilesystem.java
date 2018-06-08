@@ -50,19 +50,19 @@ public class PeripheralOCFilesystem implements Peripheral {
         }
 
         @ComponentMethod
-        public void close() throws IOException {
+        public void close() throws Exception {
             file.close();
         }
 
         @ComponentMethod
         public String read(int bytes) throws IOException {
             byte[] data = file.read(bytes);
-            return data != null ? new String(data, Charset.forName("UTF-8")) : null;
+            return data != null ? new String(data, machine.getCharset()) : null;
         }
 
         @ComponentMethod
         public boolean write(String value) throws IOException {
-            return file.write(value.getBytes(Charset.forName("UTF-8")));
+            return file.write(value.getBytes(machine.getCharset()));
         }
 
         @ComponentMethod
@@ -84,7 +84,7 @@ public class PeripheralOCFilesystem implements Peripheral {
         }
 
         @ComponentMethod
-        public void close() throws IOException {
+        public void close() throws Exception {
             file.close();
         }
 
@@ -224,7 +224,7 @@ public class PeripheralOCFilesystem implements Peripheral {
     }
 
     @ComponentMethod
-    public void close(Object o) throws IOException {
+    public void close(Object o) throws Exception {
         if (o instanceof OCFileString) ((OCFileString) o).close();
         else if (o instanceof OCFileByteArray) ((OCFileByteArray) o).close();
     }
@@ -255,10 +255,10 @@ public class PeripheralOCFilesystem implements Peripheral {
 
         if (value instanceof String) {
             valueStr = (String) value;
-            valueArr = valueStr.getBytes(Charset.forName("UTF-8"));
+            valueArr = valueStr.getBytes(machine.getCharset());
         } else if (value instanceof byte[]) {
             valueArr = (byte[]) value;
-            valueStr = new String(valueArr, Charset.forName("UTF-8"));
+            valueStr = new String(valueArr, machine.getCharset());
         } else {
             return false;
         }

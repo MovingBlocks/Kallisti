@@ -27,12 +27,12 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 public class PeripheralOCEEPROM implements Peripheral {
-    private final Machine machine;
+    private final MachineOpenComputers machine;
     private final StaticByteStorage backing;
     private final int codeSize, dataSize;
 
     @ComponentRule
-    public PeripheralOCEEPROM(Machine machine, StaticByteStorage storage) {
+    public PeripheralOCEEPROM(MachineOpenComputers machine, StaticByteStorage storage) {
         this.machine = machine;
         this.backing = storage;
 
@@ -65,7 +65,7 @@ public class PeripheralOCEEPROM implements Peripheral {
             }
         }
 
-        return new String(backing.get(), pos, i, Charset.forName("UTF-8"));
+        return new String(backing.get(), pos, i, machine.getCharset());
     }
 
     private boolean setString(int pos, int len, String s) {
@@ -73,7 +73,7 @@ public class PeripheralOCEEPROM implements Peripheral {
             return false;
         }
 
-        byte[] data = s.getBytes(Charset.forName("UTF-8"));
+        byte[] data = s.getBytes(machine.getCharset());
         byte[] to = backing.get();
 
         // If the data is of size len + 2 or more, quit.

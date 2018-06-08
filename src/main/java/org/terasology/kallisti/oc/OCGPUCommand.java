@@ -102,27 +102,33 @@ public abstract class OCGPUCommand {
     }
 
     public static class SetResolution extends OCGPUCommand {
-        final int newWidth, newHeight;
+        final int newWidth, newHeight, newViewportWidth, newViewportHeight;
 
-        public SetResolution(int newWidth, int newHeight) {
+        public SetResolution(int newWidth, int newHeight, int newViewportWidth, int newViewportHeight) {
             this.newWidth = newWidth;
             this.newHeight = newHeight;
+            this.newViewportWidth = newViewportWidth;
+            this.newViewportHeight = newViewportHeight;
         }
 
         public SetResolution(DataInputStream stream) throws IOException {
             newWidth = stream.readUnsignedShort();
             newHeight = stream.readUnsignedShort();
+            newViewportWidth = stream.readUnsignedShort();
+            newViewportHeight = stream.readUnsignedShort();
         }
 
         @Override
         public void write(DataOutputStream stream) throws IOException {
             stream.writeShort(newWidth);
             stream.writeShort(newHeight);
+            stream.writeShort(newViewportWidth);
+            stream.writeShort(newViewportHeight);
         }
 
         @Override
         public void apply(OCGPURenderer renderer) {
-            renderer.setResolution(newWidth, newHeight);
+            renderer.setResolution(newWidth, newHeight, newViewportWidth, newViewportHeight);
         }
     }
 

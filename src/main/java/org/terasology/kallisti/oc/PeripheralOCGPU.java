@@ -110,7 +110,7 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral {
     // TODO: Implement viewport size setting
     @ComponentMethod(returnsMultipleArguments = true)
     public int[] getViewport() {
-        return new int[] { renderer.getWidth(), renderer.getHeight() };
+        return new int[] { renderer.getViewportWidth(), renderer.getViewportHeight() };
     }
 
     @ComponentMethod(returnsMultipleArguments = true)
@@ -119,11 +119,23 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral {
     }
 
     @ComponentMethod
+    public boolean setViewport(Number widthN, Number heightN) {
+        int width = widthN.intValue();
+        int height = heightN.intValue();
+        if (width <= renderer.getWidth() && height <= renderer.getHeight() && width >= 1 && height >= 1) {
+            apply(new OCGPUCommand.SetResolution(renderer.getWidth(), renderer.getHeight(), width, height));
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @ComponentMethod
     public boolean setResolution(Number widthN, Number heightN) {
         int width = widthN.intValue();
         int height = heightN.intValue();
-        if (width <= maxWidth && height <= maxHeight && width > 0 && height > 0) {
-            apply(new OCGPUCommand.SetResolution(width, height));
+        if (width <= maxWidth && height <= maxHeight && width >= 1 && height >= 1) {
+            apply(new OCGPUCommand.SetResolution(width, height, width, height));
             return true;
         } else {
             return false;

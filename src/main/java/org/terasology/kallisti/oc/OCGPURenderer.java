@@ -31,6 +31,7 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
     private int[] bgs = new int[0];
     private int[] fgs = new int[0];
 
+    private int viewportWidth, viewportHeight;
     private int width, height, bitDepthUsed;
 
     public static int[] genThirdTierPalette() {
@@ -77,6 +78,14 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
         return height;
     }
 
+    public int getViewportWidth() {
+        return viewportWidth;
+    }
+
+    public int getViewportHeight() {
+        return viewportHeight;
+    }
+
     public int getBitDepthUsed() {
         return bitDepthUsed;
     }
@@ -114,12 +123,14 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
         }
     }
 
-    public void setResolution(int width, int height) {
+    public void setResolution(int width, int height, int viewportWidth, int viewportHeight) {
         this.chars = rescale(this.chars, this.width, this.height, width, height);
         this.bgs = rescale(this.bgs, this.width, this.height, width, height);
         this.fgs = rescale(this.fgs, this.width, this.height, width, height);
         this.width = width;
         this.height = height;
+        this.viewportWidth = viewportWidth;
+        this.viewportHeight = viewportHeight;
     }
 
     @Override
@@ -130,7 +141,9 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
         if (type == 0x01) { // INITIAL packet
             int nwidth = dataStream.readUnsignedShort();
             int nheight = dataStream.readUnsignedShort();
-            setResolution(nwidth, nheight);
+            int nviewportw = dataStream.readUnsignedShort();
+            int nviewporth = dataStream.readUnsignedShort();
+            setResolution(nwidth, nheight, nviewportw, nviewporth);
 
             bitDepthUsed = dataStream.readUnsignedByte();
             palette = new int[dataStream.readInt()];
@@ -176,17 +189,34 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
     }
 
     public void copy(int x, int y, int width, int height, int tx, int ty) {
+        int[] charB = new int[width * height];
+        int[] bgB = new int[width * height];
+        int[] fgB = new int[width * height];
+        int i;
+
+        i = 0;
         for (int iy = y; iy < y + height; iy++) {
-            for (int ix = x; ix < x + width; ix++) {
+            for (int ix = x; ix < x + width; ix++, i++) {
                 if (ix >= 1 && iy >= 1 && ix <= this.width && iy <= this.height) {
-                    int ox = ix + tx;
-                    int oy = iy + ty;
+                    int idxSrc = (iy - 1) * this.width + (ix - 1);
+                    charB[i] = chars[idxSrc];
+                    bgB[i] = bgs[idxSrc];
+                    fgB[i] = fgs[idxSrc];
+                }
+            }
+        }
+
+        i = 0;
+        for (int oy = y + ty; oy < y + ty + height; oy++) {
+            for (int ox = x + tx; ox < x + tx + width; ox++, i++) {
+                int ix = ox - tx;
+                int iy = oy - ty;
+                if (ix >= 1 && iy >= 1 && ix <= this.width && iy <= this.height) {
                     if (ox >= 1 && oy >= 1 && ox <= this.width && oy <= this.height) {
-                        int idxSrc = (iy - 1) * this.width + (ix - 1);
                         int idxDst = (oy - 1) * this.width + (ox - 1);
-                        chars[idxDst] = chars[idxSrc];
-                        bgs[idxDst] = bgs[idxSrc];
-                        fgs[idxDst] = fgs[idxSrc];
+                        chars[idxDst] = charB[i];
+                        bgs[idxDst] = bgB[i];
+                        fgs[idxDst] = fgB[i];
                     }
                 }
             }
@@ -214,6 +244,8 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
     protected void writeInitialPacket(DataOutputStream dataStream) throws IOException {
         dataStream.writeShort(getWidth());
         dataStream.writeShort(getHeight());
+        dataStream.writeShort(getViewportWidth());
+        dataStream.writeShort(getViewportHeight());
         dataStream.writeByte(getBitDepthUsed());
         dataStream.writeInt(getPaletteSize());
 

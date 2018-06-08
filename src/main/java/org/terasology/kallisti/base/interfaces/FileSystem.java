@@ -81,7 +81,7 @@ public interface FileSystem {
         END
     }
 
-    interface File {
+    interface File extends AutoCloseable {
         boolean isSeekable();
         boolean isReadable();
         boolean isWritable();
@@ -89,7 +89,6 @@ public interface FileSystem {
         long seek(Whence whence, int offset) throws IOException;
         byte[] read(int bytes) throws IOException;
         boolean write(byte[] value, int offset, int len) throws IOException;
-        void close() throws IOException;
 
         default boolean write(byte[] value) throws IOException {
             return write(value, 0, value.length);
