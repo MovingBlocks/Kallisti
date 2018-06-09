@@ -33,7 +33,7 @@ public class Main {
                 KallistiFileUtils.readString(new File(json.get("machineFile").getAsString())),
                 context,
                 new OCFont(
-                        new File(json.get("font").getAsString()),
+                        KallistiFileUtils.readString(new File(json.get("font").getAsString())),
                         json.get("fontHeight").getAsInt()
                 ),
                 json.has("memory") ? json.get("memory").getAsInt() : 0,
