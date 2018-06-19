@@ -16,7 +16,7 @@
 
 package org.terasology.kallisti.oc;
 
-import java.io.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,10 +24,9 @@ public class OCFont {
     private final Map<Integer, byte[]> fontArray = new HashMap<>();
     private final int fontHeight;
 
-    public OCFont(File font, int fontHeight) throws IOException {
+    public OCFont(String font, int fontHeight) {
         this.fontHeight = fontHeight;
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(font)));
-        reader.lines().forEach((s) -> {
+        Arrays.asList(font.split("\\n")).forEach((s) -> {
             String[] data = s.trim().split(":");
             int key = Integer.parseInt(data[0], 16);
             byte[] bytes = new byte[data[1].length() / 2];
@@ -36,7 +35,6 @@ public class OCFont {
             }
             fontArray.put(key, bytes);
         });
-        reader.close();
     }
 
     public byte[] getData(int v) {

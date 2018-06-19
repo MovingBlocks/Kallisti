@@ -24,8 +24,6 @@ import org.terasology.kallisti.jnlua.KallistiConverter;
 import org.terasology.kallisti.jnlua.KallistiGlobalRegistry;
 import org.terasology.jnlua.LuaState;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -36,18 +34,18 @@ public class MachineOpenComputers extends Machine {
     private final Map<String, Object> peripheralAddressMap = new HashMap<>();
     private final LinkedList<Object[]> signalQueue = new LinkedList<>();
 
-    private final File machineJson;
+    private final String machineJson;
     private final LuaState state;
     private final ShimUserdata shimUserdata;
 
     private PeripheralOCComputer peripheralComputer;
     private final String persistenceKey;
 
-    public MachineOpenComputers(File machineJson, ComponentContext selfContext, OCFont font, int memorySize, Class<? extends LuaState> luaClass, boolean enablePersistence) {
+    public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize, Class<? extends LuaState> luaClass, boolean enablePersistence) {
         this(machineJson, selfContext, font, memorySize, luaClass, enablePersistence ? "__persist_" + UUID.randomUUID().toString() : null);
     }
 
-    public MachineOpenComputers(File machineJson, ComponentContext selfContext, OCFont font, int memorySize, Class<? extends LuaState> luaClass, String persistenceKey) {
+    public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize, Class<? extends LuaState> luaClass, String persistenceKey) {
         this.machineJson = machineJson;
         this.font = font;
         try {
@@ -205,7 +203,7 @@ public class MachineOpenComputers extends Machine {
     }
 
     public void start() throws Exception {
-        state.load(new FileInputStream(machineJson), "=machine", "t");
+        state.load(machineJson, "=machine");
         state.newThread();
     }
 

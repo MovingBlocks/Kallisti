@@ -20,12 +20,6 @@ import org.terasology.kallisti.base.component.*;
 import org.terasology.kallisti.base.interfaces.Labelable;
 import org.terasology.kallisti.base.interfaces.StaticByteStorage;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
-
 public class PeripheralOCEEPROM implements Peripheral {
     private final MachineOpenComputers machine;
     private final StaticByteStorage backing;
@@ -38,22 +32,6 @@ public class PeripheralOCEEPROM implements Peripheral {
 
         this.dataSize = 256;
         this.codeSize = this.backing.get().length - this.dataSize;
-    }
-
-    private static final String readFile(File inf) throws IOException {
-        FileInputStream in = new FileInputStream(inf);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        byte[] buffer = new byte[1024];
-        int len;
-        while ((len = in.read(buffer)) != -1) {
-            out.write(buffer, 0, len);
-        }
-
-        in.close();
-        out.close();
-
-        return new String(out.toByteArray(), Charset.forName("UTF-8"));
     }
 
     private String getString(int pos, int len) {

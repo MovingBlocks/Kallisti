@@ -18,6 +18,7 @@ package org.terasology.kallisti.simulator;
 
 import org.terasology.jnlua.LuaState52;
 import org.terasology.jnlua.LuaState53;
+import org.terasology.kallisti.base.util.KallistiFileUtils;
 import org.terasology.kallisti.oc.MachineOpenComputers;
 import org.terasology.kallisti.oc.OCFont;
 import org.terasology.kallisti.oc.OCGPURenderer;
@@ -29,10 +30,10 @@ public class Main {
     public static void main(String[] args) throws Exception {
         SimulatorInstantiationManager manager = new SimulatorInstantiationManager();
         manager.register("MachineOpenComputers", (owner, context, json) -> new MachineOpenComputers(
-                new File(json.get("machineFile").getAsString()),
+                KallistiFileUtils.readString(new File(json.get("machineFile").getAsString())),
                 context,
                 new OCFont(
-                        new File(json.get("font").getAsString()),
+                        KallistiFileUtils.readString(new File(json.get("font").getAsString())),
                         json.get("fontHeight").getAsInt()
                 ),
                 json.has("memory") ? json.get("memory").getAsInt() : 0,
