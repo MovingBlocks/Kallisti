@@ -25,6 +25,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * A component interface for exposing file-based filesystems to computers.
+ */
 @ComponentInterface
 public interface FileSystem {
     interface Metadata {

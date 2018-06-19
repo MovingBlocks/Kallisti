@@ -16,6 +16,9 @@
 
 package org.terasology.kallisti.base.util;
 
+/**
+ * An utility class for storing two-dimensional floating-point vectors.
+ */
 public class Dimension {
     private final float x, y;
 

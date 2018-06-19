@@ -16,6 +16,9 @@
 
 package org.terasology.kallisti.base.util;
 
+/**
+ * An utility class for storing two-dimensional integer vectors.
+ */
 public class PixelDimension {
     private final int x, y;
 

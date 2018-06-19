@@ -19,9 +19,9 @@ package org.terasology.kallisti.base.util;
 import java.util.Collection;
 
 /**
- * A clean interface for handling a map of lists.
- * @param <K> The key.
- * @param <V> The value.
+ * A clean interface for handling a multi-value-per-key map.
+ * @param <K> The key type.
+ * @param <V> The value type.
  */
 public interface MultiValueMap<K, V> {
     boolean add(K key, V value);

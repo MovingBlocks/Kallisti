@@ -22,6 +22,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+/**
+ * A basic implementation of a multi-value-per-key map, using a map of lists.
+ * @param <K> The key type.
+ * @param <V> The value type.
+ */
 public class ListBackedMultiValueMap<K, V> implements MultiValueMap<K, V> {
     private final Map<K, List<V>> map;
     private final Supplier<List<V>> listSupplier;

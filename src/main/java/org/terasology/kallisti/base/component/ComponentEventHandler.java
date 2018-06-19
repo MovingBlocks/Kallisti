@@ -25,6 +25,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Handler for emitting ComponentEvents.
+ */
 public class ComponentEventHandler {
     private static class Listener {
         private final Object parent;
@@ -51,6 +54,11 @@ public class ComponentEventHandler {
         listeners = new ListBackedMultiValueMap<>(new HashMap<>(), ArrayList::new);
     }
 
+    /**
+     * Register an object's @ComponentEventListener-marked methods
+     * as event listeners.
+     * @param o The object.
+     */
     public void register(Object o) {
         for (Method m : o.getClass().getMethods()) {
             if (m.getAnnotation(ComponentEventListener.class) != null
@@ -62,6 +70,10 @@ public class ComponentEventHandler {
         }
     }
 
+    /**
+     * Emit a given ComponentEvent to all matching listeners.
+     * @param event The event.
+     */
     public void emit(ComponentEvent event) {
         for (Listener l : listeners.values(event.getClass())) {
             try {

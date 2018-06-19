@@ -20,16 +20,43 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * An interface for components which can be synchronized across the network,
+ * from the server to the client.
+ */
 public interface Synchronizable {
+    /**
+     * An interface for classes capable of receiving data from a matching
+     * Synchronizable.
+     */
     interface Receiver {
         void update(InputStream stream) throws IOException;
     }
 
     enum Type {
+        /**
+         * Intial update for a given client.
+         */
         INITIAL,
-        DELTA;
+        /**
+         * Any future update for a given client.
+         */
+        DELTA
     }
 
+    /**
+     * Check if the component has a ready synchronization packet of a given
+     * type.
+     * @param type The type.
+     * @return Whether a synchronization packet can be made or not.
+     */
     boolean hasSyncPacket(Type type);
+
+    /**
+     * Write the synchronization packet to the given output stream.
+     * @param type The packet type.
+     * @param stream The given output stream.
+     * @throws IOException Upon packet writing issues.
+     */
     void writeSyncPacket(Type type, OutputStream stream) throws IOException;
 }
