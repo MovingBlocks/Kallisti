@@ -24,7 +24,6 @@ import org.terasology.kallisti.base.interfaces.FileSystem;
 import org.terasology.kallisti.base.interfaces.Labelable;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,44 +41,10 @@ public class PeripheralOCFilesystem implements Peripheral {
         return "filesystem";
     }
 
-    public class OCFileString {
+    public class OCFile {
         private final FileSystem.File file;
 
-        public OCFileString(FileSystem.File file) {
-            this.file = file;
-        }
-
-        @ComponentMethod
-        public void close() throws Exception {
-            file.close();
-        }
-
-        @ComponentMethod
-        public String read(int bytes) throws IOException {
-            byte[] data = file.read(bytes);
-            return data != null ? new String(data, machine.getCharset()) : null;
-        }
-
-        @ComponentMethod
-        public boolean write(String value) throws IOException {
-            return file.write(value.getBytes(machine.getCharset()));
-        }
-
-        @ComponentMethod
-        public long seek(String whence, int offset) throws IOException {
-            return file.seek(stringToWhence(whence), offset);
-        }
-
-        @ComponentMethod
-        public long seek(String whence) throws IOException {
-            return seek(whence, 0);
-        }
-    }
-
-    public class OCFileByteArray {
-        private final FileSystem.File file;
-
-        public OCFileByteArray(FileSystem.File file) {
+        public OCFile(FileSystem.File file) {
             this.file = file;
         }
 
@@ -214,57 +179,44 @@ public class PeripheralOCFilesystem implements Peripheral {
 
     @ComponentMethod
     public Object open(String path, String mode) throws IOException {
-        if      ("r".equals(mode)) return new OCFileString(fileSystem.open(path, FileSystem.OpenMode.READ));
-        else if ("rb".equals(mode)) return new OCFileByteArray(fileSystem.open(path, FileSystem.OpenMode.READ));
-        else if ("w".equals(mode)) return new OCFileString(fileSystem.open(path, FileSystem.OpenMode.WRITE));
-        else if ("wb".equals(mode)) return new OCFileByteArray(fileSystem.open(path, FileSystem.OpenMode.WRITE));
-        else if ("a".equals(mode)) return new OCFileString(fileSystem.open(path, FileSystem.OpenMode.APPEND));
-        else if ("ab".equals(mode)) return new OCFileByteArray(fileSystem.open(path, FileSystem.OpenMode.APPEND));
+        if ("r".equals(mode) || "rb".equals(mode)) return new OCFile(fileSystem.open(path, FileSystem.OpenMode.READ));
+        else if ("w".equals(mode) || "wb".equals(mode)) return new OCFile(fileSystem.open(path, FileSystem.OpenMode.WRITE));
+        else if ("a".equals(mode) || "ab".equals(mode)) return new OCFile(fileSystem.open(path, FileSystem.OpenMode.APPEND));
         else return null;
     }
 
     @ComponentMethod
-    public void close(Object o) throws Exception {
-        if (o instanceof OCFileString) ((OCFileString) o).close();
-        else if (o instanceof OCFileByteArray) ((OCFileByteArray) o).close();
+    public void close(OCFile o) throws Exception {
+        o.close();
     }
 
     @ComponentMethod
-    public Object read(Object o, Number bytes) throws IOException {
-        if (o instanceof OCFileString) return ((OCFileString) o).read(bytes.intValue());
-        else if (o instanceof OCFileByteArray) return ((OCFileByteArray) o).read(bytes.intValue());
-        else return null;
+    public Object read(OCFile o, Number bytes) throws IOException {
+        return o.read(bytes.intValue());
     }
 
     @ComponentMethod
-    public long seek(Object o, String whence) throws IOException {
+    public long seek(OCFile o, String whence) throws IOException {
         return seek(o, whence, 0);
     }
 
     @ComponentMethod
-    public long seek(Object o, String whence, int offset) throws IOException {
-        if (o instanceof OCFileString) return ((OCFileString) o).seek(whence, offset);
-        else if (o instanceof OCFileByteArray) return ((OCFileByteArray) o).seek(whence, offset);
-        else return -1;
+    public long seek(OCFile o, String whence, Number offset) throws IOException {
+        return o.seek(whence, offset.intValue());
     }
 
     @ComponentMethod
-    public boolean write(Object o, Object value) throws IOException {
-        String valueStr;
+    public boolean write(OCFile o, Object value) throws IOException {
         byte[] valueArr;
 
         if (value instanceof String) {
-            valueStr = (String) value;
-            valueArr = valueStr.getBytes(machine.getCharset());
+            valueArr = ((String) value).getBytes(machine.getCharset());
         } else if (value instanceof byte[]) {
             valueArr = (byte[]) value;
-            valueStr = new String(valueArr, machine.getCharset());
         } else {
             return false;
         }
 
-        if (o instanceof OCFileString) return ((OCFileString) o).write(valueStr);
-        else if (o instanceof OCFileByteArray) return ((OCFileByteArray) o).write(valueArr);
-        else return false;
+        return o.write(valueArr);
     }
 }
