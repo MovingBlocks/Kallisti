@@ -28,6 +28,9 @@ public interface Synchronizable {
     /**
      * An interface for classes capable of receiving data from a matching
      * Synchronizable.
+     *
+     * Generally, Receivers should store the binding to sources, as well
+     * as maintain synchronization of source data to the Receiver.
      */
     interface Receiver {
         void update(InputStream stream) throws IOException;
