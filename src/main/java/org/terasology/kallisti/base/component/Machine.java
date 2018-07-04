@@ -16,10 +16,15 @@
 
 package org.terasology.kallisti.base.component;
 
+import org.terasology.kallisti.base.interfaces.Persistable;
 import org.terasology.kallisti.base.util.KallistiReflect;
 import org.terasology.kallisti.base.util.ListBackedMultiValueMap;
 import org.terasology.kallisti.base.util.MultiValueMap;
+import org.terasology.kallisti.base.util.PersistenceException;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -164,6 +169,14 @@ public abstract class Machine {
         initialized = false;
 
         addNonComponentObject(this);
+    }
+
+    public Iterable<? extends Object> getAllComponents() {
+        return entries.stream().map((m) -> m.object).collect(Collectors.toList());
+    }
+
+    public Iterable<ComponentContext> getAllComponentContexts() {
+        return entries.stream().map((m) -> m.context).collect(Collectors.toList());
     }
 
     private void registerRules(Object parent, Method m) throws IllegalArgumentException {
@@ -502,4 +515,12 @@ public abstract class Machine {
     }
 
     protected abstract boolean tickInternal(double time) throws Exception;
+
+    /**
+     * Get the persistence handler, if the machine can be persisted or unpersisted.
+     * @return The persistence handler.
+     */
+    public Optional<Persistable> getPersistenceHandler() {
+        return Optional.empty();
+    }
 }

@@ -20,10 +20,15 @@ import org.terasology.jnlua.LuaState53;
 import org.terasology.kallisti.base.component.ComponentContext;
 import org.terasology.kallisti.base.component.Machine;
 import org.terasology.kallisti.base.component.Peripheral;
+import org.terasology.kallisti.base.interfaces.Persistable;
+import org.terasology.kallisti.base.util.PersistenceException;
 import org.terasology.kallisti.jnlua.KallistiConverter;
 import org.terasology.kallisti.jnlua.KallistiGlobalRegistry;
 import org.terasology.jnlua.LuaState;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -39,7 +44,8 @@ public class MachineOpenComputers extends Machine {
     private final ShimUserdata shimUserdata;
 
     private PeripheralOCComputer peripheralComputer;
-    private final String persistenceKey;
+    private final PersistenceAPI persistenceAPI;
+    private final int memorySize;
 
     public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize, Class<? extends LuaState> luaClass, boolean enablePersistence) {
         this(machineJson, selfContext, font, memorySize, luaClass, enablePersistence ? "__persist_" + UUID.randomUUID().toString() : null);
@@ -47,6 +53,7 @@ public class MachineOpenComputers extends Machine {
 
     public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize, Class<? extends LuaState> luaClass, String persistenceKey) {
         this.machineJson = machineJson;
+        this.memorySize = memorySize;
         this.font = font;
         try {
             if (memorySize > 0) {
@@ -83,22 +90,10 @@ public class MachineOpenComputers extends Machine {
             persistenceKey = null;
         }
 
-        this.persistenceKey = persistenceKey;
-        if (isPersistenceEnabled()) {
-            // Configure Eris
-            state.getGlobal("eris");
-            state.getField(-1, "settings");
-            state.pushString("spkey");
-            state.pushString(persistenceKey);
-            state.call(2, 0);
-            state.pop(1);
-
-            // Add persistKey()
-            state.pushJavaFunction((s) -> {
-                s.pushString(this.persistenceKey);
-                return 1;
-            });
-            state.setGlobal("persistKey");
+        if (persistenceKey != null) {
+            persistenceAPI = new PersistenceAPI(this, persistenceKey);
+        } else {
+            persistenceAPI = null;
         }
 
         state.setConverter(converter);
@@ -126,8 +121,10 @@ public class MachineOpenComputers extends Machine {
         registerRules(PeripheralOCScreen.class);
     }
 
-    public boolean isPersistenceEnabled() {
-        return persistenceKey != null;
+    void setLimitMemorySize(boolean v) {
+        if (memorySize > 0) {
+            state.setTotalMemory(v ? memorySize : Integer.MAX_VALUE);
+        }
     }
 
     @Override
@@ -137,6 +134,8 @@ public class MachineOpenComputers extends Machine {
         for (Peripheral o : getComponentsByClass(Peripheral.class)) {
             peripheralAddressMap.put(getComponentAddress(o), o);
         }
+
+        getPersistenceHandler().ifPresent((h) -> ((PersistenceAPI) h).initialize());
     }
 
     /**
@@ -278,6 +277,11 @@ public class MachineOpenComputers extends Machine {
         }
 
         return true;
+    }
+
+    @Override
+    public Optional<Persistable> getPersistenceHandler() {
+        return Optional.ofNullable(persistenceAPI);
     }
 
     /**

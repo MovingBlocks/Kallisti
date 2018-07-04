@@ -19,18 +19,18 @@ package org.terasology.kallisti.oc;
 import org.terasology.kallisti.base.component.ComponentMethod;
 import org.terasology.kallisti.base.component.Peripheral;
 import org.terasology.kallisti.base.interfaces.FrameBuffer;
+import org.terasology.kallisti.base.interfaces.Persistable;
 import org.terasology.kallisti.base.interfaces.Synchronizable;
 import org.terasology.kallisti.base.util.KallistiColor;
 import org.terasology.kallisti.base.util.KallistiMath;
+import org.terasology.kallisti.base.util.PersistenceException;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-public class PeripheralOCGPU implements Synchronizable, Peripheral {
+public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable {
     private final OCGPURenderer renderer;
     private final MachineOpenComputers machine;
     private final int maxWidth, maxHeight, bitDepth;
@@ -317,4 +317,36 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral {
 		commands.clear();
 		dataStream.close();
 	}
+
+	private static final int PERSISTENCE_VERSION = 0x01;
+
+    @Override
+    public void persist(OutputStream data) throws IOException, PersistenceException {
+        DataOutputStream stream = new DataOutputStream(data);
+        stream.writeShort(PERSISTENCE_VERSION);
+        if (screenAddr != null) {
+            stream.writeBoolean(true);
+            stream.writeUTF(screenAddr);
+        } else {
+            stream.writeBoolean(false);
+        }
+        stream.writeInt(bgColor);
+        stream.writeInt(fgColor);
+        renderer.writeInitialPacket(stream);
+        stream.close();
+    }
+
+    @Override
+    public void unpersist(InputStream data) throws IOException, PersistenceException {
+        DataInputStream stream = new DataInputStream(data);
+        int v = stream.readUnsignedShort();
+        if (v > PERSISTENCE_VERSION) {
+            throw new PersistenceException("Version too new!");
+        }
+        screenAddr = stream.readBoolean() ? stream.readUTF() : null;
+        bgColor = stream.readInt();
+        fgColor = stream.readInt();
+        renderer.readInitialPacket(stream);
+        stream.close();
+    }
 }

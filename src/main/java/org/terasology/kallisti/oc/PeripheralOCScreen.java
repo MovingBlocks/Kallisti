@@ -22,12 +22,15 @@ import org.terasology.kallisti.base.component.ComponentContext;
 import org.terasology.kallisti.base.component.ComponentMethod;
 import org.terasology.kallisti.base.component.ComponentRule;
 import org.terasology.kallisti.base.component.Peripheral;
+import org.terasology.kallisti.base.interfaces.Persistable;
+import org.terasology.kallisti.base.util.PersistenceException;
 
+import java.io.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PeripheralOCScreen implements Peripheral {
+public class PeripheralOCScreen implements Peripheral, Persistable {
     private final MachineOpenComputers machine;
     private final FrameBuffer buffer;
 
@@ -87,5 +90,24 @@ public class PeripheralOCScreen implements Peripheral {
     @Override
     public String type() {
         return "screen";
+    }
+
+    private static final int PERSISTENCE_VERSION = 0x01;
+
+    @Override
+    public void persist(OutputStream data) throws IOException, PersistenceException {
+        DataOutputStream stream = new DataOutputStream(data);
+        stream.writeShort(PERSISTENCE_VERSION);
+        stream.writeBoolean(on);
+    }
+
+    @Override
+    public void unpersist(InputStream data) throws IOException, PersistenceException {
+        DataInputStream stream = new DataInputStream(data);
+        int v = stream.readUnsignedShort();
+        if (v > PERSISTENCE_VERSION) {
+            throw new PersistenceException("Version too new!");
+        }
+        on = stream.readBoolean();
     }
 }

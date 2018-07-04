@@ -139,24 +139,7 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
         int type = dataStream.readUnsignedByte();
 
         if (type == 0x01) { // INITIAL packet
-            int nwidth = dataStream.readUnsignedShort();
-            int nheight = dataStream.readUnsignedShort();
-            int nviewportw = dataStream.readUnsignedShort();
-            int nviewporth = dataStream.readUnsignedShort();
-            setResolution(nwidth, nheight, nviewportw, nviewporth);
-
-            bitDepthUsed = dataStream.readUnsignedByte();
-            palette = new int[dataStream.readInt()];
-            for (int i = 0; i < palette.length; i++) {
-                palette[i] = dataStream.readInt();
-            }
-
-            for (int i = 0; i < getWidth() * getHeight(); i++)
-                chars[i] = dataStream.readInt();
-            for (int i = 0; i < getWidth() * getHeight(); i++)
-                bgs[i] = dataStream.readInt();
-            for (int i = 0; i < getWidth() * getHeight(); i++)
-                fgs[i] = dataStream.readInt();
+            readInitialPacket(dataStream);
         } else if (type == 0x02) { // DELTA packet
             int size = dataStream.readInt();
             for (int i = 0; i < size; i++) {
@@ -239,6 +222,27 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
                 pos += textRenderer.getFont().getCharWidth(code);
             }
         }
+    }
+
+    protected void readInitialPacket(DataInputStream dataStream) throws IOException {
+        int nwidth = dataStream.readUnsignedShort();
+        int nheight = dataStream.readUnsignedShort();
+        int nviewportw = dataStream.readUnsignedShort();
+        int nviewporth = dataStream.readUnsignedShort();
+        setResolution(nwidth, nheight, nviewportw, nviewporth);
+
+        bitDepthUsed = dataStream.readUnsignedByte();
+        palette = new int[dataStream.readInt()];
+        for (int i = 0; i < palette.length; i++) {
+            palette[i] = dataStream.readInt();
+        }
+
+        for (int i = 0; i < getWidth() * getHeight(); i++)
+            chars[i] = dataStream.readInt();
+        for (int i = 0; i < getWidth() * getHeight(); i++)
+            bgs[i] = dataStream.readInt();
+        for (int i = 0; i < getWidth() * getHeight(); i++)
+            fgs[i] = dataStream.readInt();
     }
 
     protected void writeInitialPacket(DataOutputStream dataStream) throws IOException {
