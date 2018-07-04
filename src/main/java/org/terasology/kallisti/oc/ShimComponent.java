@@ -22,6 +22,8 @@ import org.terasology.kallisti.base.component.Peripheral;
 import org.terasology.jnlua.LuaState;
 import org.terasology.jnlua.LuaValueProxy;
 
+import java.util.Optional;
+
 public class ShimComponent extends ShimInvoker<Object> {
 	public ShimComponent(MachineOpenComputers machine) {
 		super(machine);
@@ -49,25 +51,17 @@ public class ShimComponent extends ShimInvoker<Object> {
 		return "unknown";
 	}
 
+	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 	@ComponentMethod
-	public LuaValueProxy list() {
-		return list(null, true);
-	}
-
-	@ComponentMethod
-	public LuaValueProxy list(String filter) {
-		return list(filter, false);
-	}
-
-	@ComponentMethod
-	public LuaValueProxy list(String filter, boolean exact) {
+	public LuaValueProxy list(Optional<String> filter, Optional<Boolean> oexact) {
+		boolean exact = oexact.orElse(!filter.isPresent());
 		LuaState state = machine.getLuaState();
 		state.newTable();
 		for (ComponentContext ctx : machine.getContextsByClass(Peripheral.class)) {
 			Object value = machine.getComponent(ctx, Peripheral.class);
 			String type = machine.getComponentType(value);
 
-			if (filter == null || filter.length() == 0 || (exact && filter.equals(type)) || (!exact && type.contains(filter))) {
+			if (!filter.isPresent() || filter.get().length() == 0 || (exact && filter.get().equals(type)) || (!exact && type.contains(filter.get()))) {
 				state.pushString(type);
 				state.setField(-2, machine.getComponentAddress(value));
 			}

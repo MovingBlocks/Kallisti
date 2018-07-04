@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class PeripheralOCGPU implements Synchronizable, Peripheral {
     private final OCGPURenderer renderer;
@@ -177,17 +178,13 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral {
         return getPaletteColor(bgColor);
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @ComponentMethod(returnsMultipleArguments = true)
-    public int[] setBackground(Number color) {
-        return setBackground(color, false);
-    }
-
-    @ComponentMethod(returnsMultipleArguments = true)
-    public int[] setBackground(Number color, boolean isPaletteIndex) {
+    public int[] setBackground(Number color, Optional<Boolean> isPaletteIndex) {
         int[] oldColorReturn = getOldColorReturn(bgColor);
         int colorCount = renderer.getAccessiblePaletteSize();
 
-        if (isPaletteIndex && color.intValue() >= 0 && color.intValue() < colorCount) {
+        if (isPaletteIndex.orElse(false) && color.intValue() >= 0 && color.intValue() < colorCount) {
             bgColor = color.intValue();
         } else {
             bgColor = findNearest(color.intValue(), colorCount);
@@ -201,17 +198,13 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral {
         return getPaletteColor(fgColor);
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @ComponentMethod(returnsMultipleArguments = true)
-    public int[] setForeground(Number color) {
-        return setForeground(color, false);
-    }
-
-    @ComponentMethod(returnsMultipleArguments = true)
-    public int[] setForeground(Number color, boolean isPaletteIndex) {
+    public int[] setForeground(Number color, Optional<Boolean> isPaletteIndex) {
         int[] oldColorReturn = getOldColorReturn(fgColor);
         int colorCount = renderer.getAccessiblePaletteSize();
 
-        if (isPaletteIndex && color.intValue() >= 0 && color.intValue() < colorCount) {
+        if (isPaletteIndex.orElse(false) && color.intValue() >= 0 && color.intValue() < colorCount) {
             fgColor = color.intValue();
         } else {
             fgColor = findNearest(color.intValue(), colorCount);
@@ -283,15 +276,11 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral {
         return true;
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @ComponentMethod
-    public boolean set(Number x, Number y, String value) {
-        return set(x, y, value, false);
-    }
-
-    @ComponentMethod
-    public boolean set(Number x, Number y, String value, boolean vertical) {
-		int maxLen = vertical ? (maxHeight - (y.intValue() - 1)) : (maxWidth - (x.intValue() - 1));
-		apply(new OCGPUCommand.Set(bgColor, fgColor, x.intValue(), y.intValue(), vertical, value.length() > maxLen ? value.substring(0, maxLen) : value));
+    public boolean set(Number x, Number y, String value, Optional<Boolean> vertical) {
+		int maxLen = vertical.orElse(false) ? (maxHeight - (y.intValue() - 1)) : (maxWidth - (x.intValue() - 1));
+		apply(new OCGPUCommand.Set(bgColor, fgColor, x.intValue(), y.intValue(), vertical.orElse(false), value.length() > maxLen ? value.substring(0, maxLen) : value));
         return true;
     }
 

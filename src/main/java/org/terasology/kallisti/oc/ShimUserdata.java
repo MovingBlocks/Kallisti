@@ -21,6 +21,7 @@ import org.terasology.kallisti.base.util.KallistiReflect;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class ShimUserdata extends ShimInvoker<Object> {
     final Map<Class, OCLuaProxy> proxyMap = new HashMap<>();
@@ -63,10 +64,11 @@ public class ShimUserdata extends ShimInvoker<Object> {
         return unapply(entry, key, null);
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @ComponentMethod(returnsMultipleArguments = true)
-    public Object[] unapply(Object entry, Object key, Object value) {
+    public Object[] unapply(Object entry, Object key, Optional<Object> value) {
         try {
-            getProxyOrThrow(entry).newindex(entry, key, value);
+            getProxyOrThrow(entry).newindex(entry, key, value.orElse(null));
             return new Object[] { true };
         } catch (Exception e) {
             return new Object[] { false, e.getMessage() };

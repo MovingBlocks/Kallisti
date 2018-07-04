@@ -19,6 +19,7 @@ package org.terasology.kallisti.oc;
 import org.terasology.kallisti.base.component.ComponentMethod;
 
 import java.util.Locale;
+import java.util.Optional;
 
 public class ShimUnicode {
     private final OCFont font;
@@ -110,13 +111,10 @@ public class ShimUnicode {
         return builder.toString();
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @ComponentMethod
-    public String sub(String s, int i) {
-        return sub(s, i, -1);
-    }
-
-    @ComponentMethod
-    public String sub(String s, int i, int j) {
+    public String sub(String s, int i, Optional<Integer> jo) {
+        int j = jo.orElse(-1);
         if (i < 0) i = s.length() + (i + 1);
         if (j < 0) j = s.length() + (j + 1);
         if (j > s.length()) j = s.length();

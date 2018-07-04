@@ -3,6 +3,8 @@ package org.terasology.kallisti.oc;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Optional;
+
 public class TestUnicode {
     private final ShimUnicode unicode = new ShimUnicode(null);
 
@@ -24,11 +26,11 @@ public class TestUnicode {
 
     @Test
     public void testSub() {
-        Assert.assertEquals("hello", unicode.sub("hello", 1));
-        Assert.assertEquals("hello", unicode.sub("hello", 1, -1));
-        Assert.assertEquals("el", unicode.sub("hello", 2, 3));
-        Assert.assertEquals("el", unicode.sub("hello", 2, -3));
-        Assert.assertEquals("ice", unicode.sub("nice", 2));
+        Assert.assertEquals("hello", unicode.sub("hello", 1, Optional.empty()));
+        Assert.assertEquals("hello", unicode.sub("hello", 1, Optional.of(-1)));
+        Assert.assertEquals("el", unicode.sub("hello", 2, Optional.of(3)));
+        Assert.assertEquals("el", unicode.sub("hello", 2, Optional.of(-3)));
+        Assert.assertEquals("ice", unicode.sub("nice", 2, Optional.empty()));
     }
 
     @Test

@@ -26,6 +26,7 @@ import org.terasology.kallisti.base.interfaces.Labelable;
 import java.io.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class PeripheralOCFilesystem implements Peripheral {
@@ -63,14 +64,10 @@ public class PeripheralOCFilesystem implements Peripheral {
             return file.write(value);
         }
 
+        @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
         @ComponentMethod
-        public long seek(String whence, int offset) throws IOException {
-            return file.seek(stringToWhence(whence), offset);
-        }
-
-        @ComponentMethod
-        public long seek(String whence) throws IOException {
-            return seek(whence, 0);
+        public long seek(String whence, Optional<Number> offset) throws IOException {
+            return file.seek(stringToWhence(whence), offset.orElse(0).intValue());
         }
     }
 
@@ -172,13 +169,10 @@ public class PeripheralOCFilesystem implements Peripheral {
         }
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @ComponentMethod
-    public Object open(String path) throws IOException {
-        return open(path, "r");
-    }
-
-    @ComponentMethod
-    public Object open(String path, String mode) throws IOException {
+    public Object open(String path, Optional<String> omode) throws IOException {
+        String mode = omode.orElse("r");
         if ("r".equals(mode) || "rb".equals(mode)) return new OCFile(fileSystem.open(path, FileSystem.OpenMode.READ));
         else if ("w".equals(mode) || "wb".equals(mode)) return new OCFile(fileSystem.open(path, FileSystem.OpenMode.WRITE));
         else if ("a".equals(mode) || "ab".equals(mode)) return new OCFile(fileSystem.open(path, FileSystem.OpenMode.APPEND));
@@ -195,14 +189,10 @@ public class PeripheralOCFilesystem implements Peripheral {
         return o.read(bytes.intValue());
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @ComponentMethod
-    public long seek(OCFile o, String whence) throws IOException {
-        return seek(o, whence, 0);
-    }
-
-    @ComponentMethod
-    public long seek(OCFile o, String whence, Number offset) throws IOException {
-        return o.seek(whence, offset.intValue());
+    public long seek(OCFile o, String whence, Optional<Number> offset) throws IOException {
+        return o.seek(whence, offset);
     }
 
     @ComponentMethod

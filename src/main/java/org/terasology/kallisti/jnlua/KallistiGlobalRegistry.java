@@ -16,14 +16,17 @@
 
 package org.terasology.kallisti.jnlua;
 
+import org.terasology.jnlua.LuaState53;
 import org.terasology.kallisti.base.component.ComponentMethod;
 import org.terasology.jnlua.LuaRuntimeException;
 import org.terasology.jnlua.LuaState;
 import org.terasology.jnlua.NamedJavaFunction;
+import org.terasology.kallisti.base.util.KallistiArgUtils;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.*;
 
 public final class KallistiGlobalRegistry {
@@ -45,18 +48,14 @@ public final class KallistiGlobalRegistry {
 		@Override
 		public int invoke(LuaState luaState) {
 			int argCount = luaState.getTop();
-			Method m = null;
-			for (Method mm : methods) {
-				if (mm.getParameterCount() == argCount || mm.isVarArgs()) {
-					m = mm;
-					break;
-				}
-			}
 
-			if (m == null) {
+			Optional<Method> om = KallistiArgUtils.findClosestMethod(argCount, methods.stream(), true);
+
+			if (!om.isPresent()) {
 				throw new RuntimeException("Could not find method " + methodName + "!");
 			}
 
+			Method m = om.get();
 			int parameterCount = m.getParameterCount();
 			Object[] arguments = new Object[parameterCount];
 
@@ -72,7 +71,16 @@ public final class KallistiGlobalRegistry {
 				}
 			} else {
 				for (int i = 0; i < parameterCount; i++) {
-					arguments[i] = luaState.toJavaObject(i + 1, m.getParameterTypes()[i]);
+					Class c = m.getParameterTypes()[i];
+					Class wrappedC = c;
+					if (c == Optional.class) {
+						wrappedC = (Class) (((ParameterizedType) m.getGenericParameterTypes()[i]).getActualTypeArguments()[0]);
+					}
+					if (i >= argCount) {
+						arguments[i] = KallistiArgUtils.getNullObjectFor(c);
+					} else {
+						arguments[i] = KallistiArgUtils.getObjectFor(c, luaState.toJavaObject(i + 1, wrappedC));
+					}
 				}
 			}
 

@@ -19,10 +19,14 @@ package org.terasology.kallisti.oc;
 import org.terasology.kallisti.base.component.ComponentMethod;
 import org.terasology.jnlua.LuaState;
 import org.terasology.jnlua.LuaValueProxy;
+import org.terasology.kallisti.base.util.KallistiArgUtils;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.util.Arrays;
+import java.util.Optional;
 
 public abstract class ShimInvoker<V> {
     protected final MachineOpenComputers machine;
@@ -41,50 +45,68 @@ public abstract class ShimInvoker<V> {
             return null;
         }
 
-        for (Method m : p.getClass().getMethods()) {
-            ComponentMethod pm;
-            if ((pm = m.getAnnotation(ComponentMethod.class)) != null) {
-                String methodName = pm.name();
-                if (methodName.isEmpty()) {
-                    methodName = m.getName();
-                }
+        Optional<Method> om = KallistiArgUtils.findClosestMethod(args.length,
+                Arrays.stream(p.getClass().getMethods()).filter(
+                        (m) -> {
+                            ComponentMethod pm;
+                            if ((pm = m.getAnnotation(ComponentMethod.class)) != null) {
+                                String methodName = pm.name();
+                                if (methodName.isEmpty()) {
+                                    methodName = m.getName();
+                                }
 
-                // TODO: Check for argument count/type match
-                if (methodName.equals(name) && (m.isVarArgs() || m.getParameterCount() == args.length)) {
-                    Object o;
-                    try {
-                        o = m.invoke(p, args);
-                    } catch (InvocationTargetException e) {
-                        return new Object[] { false, e.getTargetException().getMessage() };
-                    } catch (IllegalAccessException e) {
-                        return new Object[] { false, e.getMessage() };
-                    }
-
-                    Object[] returns = null;
-                    if (pm.returnsMultipleArguments()) {
-                        if (o.getClass().isArray()) {
-                            returns = new Object[Array.getLength(o) + 1];
-                            for (int i = 0; i < returns.length - 1; i++) {
-                                returns[i + 1] = Array.get(o, i);
+                                return methodName.equals(name);
+                            } else {
+                                return false;
                             }
                         }
-                    }
+                ), true);
 
-                    if (returns == null) {
-                        if (m.getReturnType() == Void.TYPE) {
-                            returns = new Object[1];
-                        } else {
-                            returns = new Object[2];
-                            returns[1] = o;
-                        }
-                    }
-                    returns[0] = true;
-                    return returns;
+        if (!om.isPresent()) {
+            return new Object[] { false, "could not find method " + name };
+        }
+
+        Method m = om.get();
+        ComponentMethod pm = m.getAnnotation(ComponentMethod.class);
+        Object o;
+        Object[] realArgs = new Object[m.getParameterCount()];
+        for (int i = 0; i < m.getParameterCount(); i++) {
+            Class c = m.getParameterTypes()[i];
+            if (i >= args.length) {
+                realArgs[i] = KallistiArgUtils.getNullObjectFor(c);
+            } else {
+                realArgs[i] = KallistiArgUtils.getObjectFor(c, args[i]);
+            }
+        }
+
+        try {
+            o = m.invoke(p, realArgs);
+        } catch (InvocationTargetException e) {
+            return new Object[] { false, e.getTargetException().getMessage() };
+        } catch (IllegalAccessException e) {
+            return new Object[] { false, e.getMessage() };
+        }
+
+        Object[] returns = null;
+        if (pm.returnsMultipleArguments()) {
+            if (o.getClass().isArray()) {
+                returns = new Object[Array.getLength(o) + 1];
+                for (int i = 0; i < returns.length - 1; i++) {
+                    returns[i + 1] = Array.get(o, i);
                 }
             }
         }
 
-        return new Object[] { false, "could not find method " + name };
+        if (returns == null) {
+            if (m.getReturnType() == Void.TYPE) {
+                returns = new Object[1];
+            } else {
+                returns = new Object[2];
+                returns[1] = o;
+            }
+        }
+        returns[0] = true;
+        return returns;
     }
 
     @ComponentMethod(returnsMultipleArguments = true)
