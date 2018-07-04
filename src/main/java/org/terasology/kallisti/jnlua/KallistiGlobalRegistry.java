@@ -54,7 +54,7 @@ public final class KallistiGlobalRegistry {
 			}
 
 			if (m == null) {
-				throw new RuntimeException("Could not find method!");
+				throw new RuntimeException("Could not find method " + methodName + "!");
 			}
 
 			int parameterCount = m.getParameterCount();

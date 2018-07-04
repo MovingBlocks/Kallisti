@@ -73,7 +73,7 @@ public class ShimComputer {
 
 	@ComponentMethod
 	public double realTime() {
-		return 0.0; // TODO
+		return (System.currentTimeMillis() / 1000.0);
 	}
 
 	@ComponentMethod

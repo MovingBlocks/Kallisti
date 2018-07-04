@@ -59,6 +59,11 @@ public class ShimUserdata extends ShimInvoker<Object> {
     }
 
     @ComponentMethod(returnsMultipleArguments = true)
+    public Object[] unapply(Object entry, Object key) {
+        return unapply(entry, key, null);
+    }
+
+    @ComponentMethod(returnsMultipleArguments = true)
     public Object[] unapply(Object entry, Object key, Object value) {
         try {
             getProxyOrThrow(entry).newindex(entry, key, value);

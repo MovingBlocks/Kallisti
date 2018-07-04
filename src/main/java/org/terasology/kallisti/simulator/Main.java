@@ -16,6 +16,7 @@
 
 package org.terasology.kallisti.simulator;
 
+import org.terasology.jnlua.LuaRuntimeException;
 import org.terasology.jnlua.LuaState52;
 import org.terasology.jnlua.LuaState53;
 import org.terasology.kallisti.base.util.KallistiFileUtils;
