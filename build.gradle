@@ -15,6 +15,9 @@ apply plugin: 'net.minecrell.licenser'
 
 repositories {
 	mavenCentral()
+	maven {
+	url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
+	}
 }
 
 sourceCompatibility = 1.8
@@ -25,6 +28,7 @@ dependencies {
 	compile group: 'org.msgpack', name: 'msgpack-core', version: '0.8.16'
 	compile fileTree(dir: 'libs', include: '*.jar')
 	testCompile 'junit:junit:4.12'
+	compile group: 'org.terasology.jnlua', name: 'JNLua', version: '0.1.0-SNAPSHOT'
 }
 
 license {
