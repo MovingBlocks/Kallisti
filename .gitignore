@@ -1,0 +1,47 @@
+# Ignore general
+*~
+._*
+*.bak
+/.*
+
+# Except this stuff
+!.gitattributes
+!.gitignore
+!.github
+
+# Ignore Gradle
+build/
+/gradle.properties
+
+# Ignore IntelliJ
+/out/
+/*.iml
+/*.ipr
+/*.iws
+/projectFilesBackup*
+
+# Ignore Eclipse
+.checkstyle
+.project
+.classpath
+.settings/
+bin/
+
+# Ignore Linux
+*.directory
+
+#Ignore OSX
+Icon
+.DS_Store
+.DS_Store?
+.Spotlight-V100
+.DocumentRevisions-V100
+.TemporaryItems
+.Trashes
+.dbfseventsd
+.fseventsd
+.VolumeIcon.icns
+
+#Ignore Windows
+ehthumbs.db
+Thumbs.db
