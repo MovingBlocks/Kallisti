@@ -82,8 +82,9 @@ public class ShimComputer {
 	}
 
 	@ComponentMethod
-	public void setBootAddress(String address) {
+	public boolean setBootAddress(String address) {
 		bootAddress = address;
+		return true;
 	}
 
 	@ComponentMethod

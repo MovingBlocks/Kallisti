@@ -48,7 +48,6 @@ public final class KallistiGlobalRegistry {
 		@Override
 		public int invoke(LuaState luaState) {
 			int argCount = luaState.getTop();
-
 			Optional<Method> om = KallistiArgUtils.findClosestMethod(argCount, methods.stream(), true);
 
 			if (!om.isPresent()) {

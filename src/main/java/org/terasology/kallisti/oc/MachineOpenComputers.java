@@ -253,6 +253,12 @@ public class MachineOpenComputers extends Machine {
                     // Shutdown
                     return false;
                 }
+            } else if (lastReturned[0] != null) {
+                StringBuilder builder = new StringBuilder("Unknown return types:");
+                for (int i = 0; i < lastReturned.length; i++) {
+                    builder.append(lastReturned[i] == null ? " null" : " " + lastReturned[i].getClass().getName());
+                }
+                throw new Exception(builder.toString());
             }
         }
 
