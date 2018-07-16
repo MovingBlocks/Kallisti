@@ -59,7 +59,7 @@ public class PeripheralOCFilesystem implements Peripheral {
             byte[] data = file.read(bytes);
             // OpenComputers' reading relies on returning nil if the file
             // has been read fully.
-            if (bytes > 0 && data.length == 0) {
+            if (data != null && data.length == 0) {
                 return null;
             } else {
                 return data;
