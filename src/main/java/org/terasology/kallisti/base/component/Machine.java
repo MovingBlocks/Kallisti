@@ -151,6 +151,7 @@ public abstract class Machine {
     // Initialized by registerRules()
     private final List<Rule> creationRules;
     private final MultiValueMap<Class, Rule> linkingRules;
+    private boolean rulesListDirty;
 
     // Initialized in .initialize();
     private boolean initialized;
@@ -198,6 +199,8 @@ public abstract class Machine {
                 creationRules.add(r);
             }
         }
+
+        rulesListDirty = true;
     }
 
     /**
@@ -342,25 +345,16 @@ public abstract class Machine {
             }
         }
 
-        return true;
-    }
-
-    /**
-     * Initialize the machine.
-     */
-    public void initialize() {
-        if (initialized) {
-            throw new RuntimeException("Already initialized!");
+        // Apply rules
+        if (rulesListDirty) {
+            // Sort rules
+            Comparator<Rule> sorter = (rule1, rule2) -> Integer.compare(rule2.getPriority(), rule1.getPriority());
+            creationRules.sort(sorter);
+            for (Class c : linkingRules.keys()) {
+                ((List<Rule>) linkingRules.values(c)).sort(sorter);
+            }
         }
 
-        // Sort rules
-        Comparator<Rule> sorter = (rule1, rule2) -> Integer.compare(rule2.getPriority(), rule1.getPriority());
-        creationRules.sort(sorter);
-        for (Class c : linkingRules.keys()) {
-            ((List<Rule>) linkingRules.values(c)).sort(sorter);
-        }
-
-        // Add components
         boolean addedNewComponents = true;
         while (addedNewComponents) {
             addedNewComponents = false;
@@ -401,14 +395,14 @@ public abstract class Machine {
                     int iCurr = i;
                     for (int j = 0; j < params.length; j++) {
                         if (!baseComponents.get(j).isEmpty()) {
-                            Object o = baseComponents.get(j).get(iCurr % baseComponents.get(j).size());
-                            if (o instanceof ComponentEntry) {
-                                ComponentEntry entry = (ComponentEntry) o;
-                                contexts.add(entry.context);
-                                params[j] = entry.object;
+                            Object oFound = baseComponents.get(j).get(iCurr % baseComponents.get(j).size());
+                            if (oFound instanceof ComponentEntry) {
+                                ComponentEntry entryFound = (ComponentEntry) oFound;
+                                contexts.add(entryFound.context);
+                                params[j] = entryFound.object;
                             } else {
                                 // non-entry object
-                                params[j] = o;
+                                params[j] = oFound;
                             }
 
                             if (inp[j] == Optional.class) {
@@ -422,9 +416,9 @@ public abstract class Machine {
                     try {
                         Object result = r.invoke(params);
                         if (result != null) {
-                            ComponentContext context = join(contexts.toArray(new ComponentContext[0]));
-                            if (getComponent(context, result.getClass()) == null) {
-                                addedNewComponents |= addComponent(context, result);
+                            ComponentContext contextJoined = join(contexts.toArray(new ComponentContext[0]));
+                            if (getComponent(contextJoined, result.getClass()) == null) {
+                                addedNewComponents |= addComponent(contextJoined, result);
                             }
                         }
                     } catch (Throwable e) {
@@ -435,13 +429,47 @@ public abstract class Machine {
             }
         }
 
-        // Populate eventHandler
-        Set<Object> addedObjects = new HashSet<>();
+        eventHandler.register(o);
 
-        for (ComponentEntry ce : entries) {
-            if (addedObjects.add(ce.object)) {
-                eventHandler.register(ce.object);
+        return true;
+    }
+
+    /**
+     * Removes a component from the Machine.
+     * @param context The component's context.
+     * @return Whether or not the component has been removed.
+     */
+    public boolean removeComponent(ComponentContext context) {
+        // TODO: Remove joined contexts?
+        List<ComponentEntry> entriesToRemove = entries.stream()
+                .filter((a) -> a.context.equals(context))
+                .collect(Collectors.toList());
+
+        if (entriesToRemove.isEmpty()) {
+            return false;
+        }
+
+        for (ComponentEntry e : entriesToRemove) {
+            entries.remove(e);
+            entriesByObject.remove(e.object);
+
+            for (Class c : KallistiReflect.classes(e.object.getClass())) {
+                Map<ComponentContext, ComponentEntry> m = entryClassContextTable.get(c);
+                if (m != null) {
+                    m.remove(context);
+                }
             }
+        }
+
+        return true;
+    }
+
+    /**
+     * Initialize the machine.
+     */
+    public void initialize() {
+        if (initialized) {
+            throw new RuntimeException("Already initialized!");
         }
 
         initialized = true;
@@ -481,7 +509,6 @@ public abstract class Machine {
     /**
      * Retrieve all component contexts of a given class.
      * @param c The class of the component.
-     * @param <T> The type of the component.
      * @return The component, or null if not present.
      */
     public Collection<ComponentContext> getContextsByClass(Class c) {
