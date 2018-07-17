@@ -353,6 +353,8 @@ public abstract class Machine {
             for (Class c : linkingRules.keys()) {
                 ((List<Rule>) linkingRules.values(c)).sort(sorter);
             }
+
+            rulesListDirty = false;
         }
 
         boolean addedNewComponents = true;
