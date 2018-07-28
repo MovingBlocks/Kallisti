@@ -16,8 +16,6 @@
 
 package org.terasology.kallisti.base.util;
 
-import com.sun.org.apache.bcel.internal.generic.IFNONNULL;
-
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Optional;
