@@ -17,6 +17,7 @@
 package org.terasology.kallisti.oc;
 
 import org.terasology.jnlua.LuaState53;
+import org.terasology.jnlua.LuaValueProxy;
 import org.terasology.kallisti.base.component.ComponentContext;
 import org.terasology.kallisti.base.component.Machine;
 import org.terasology.kallisti.base.component.Peripheral;
@@ -128,12 +129,42 @@ public class MachineOpenComputers extends Machine {
     }
 
     @Override
+    public boolean addComponent(ComponentContext c, Object o) {
+        if (super.addComponent(c, o)) {
+            if (o instanceof Peripheral) {
+                peripheralAddressMap.put(getComponentAddress(o), o);
+
+                pushSignal("component_added", getComponentAddress(o), getComponentType(o));
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean removeComponent(ComponentContext c) {
+        Peripheral p = getComponent(c, Peripheral.class);
+        String address = "", type = "";
+        if (p != null) {
+            address = getComponentAddress(p);
+            type = getComponentType(p);
+        }
+
+        if (super.removeComponent(c)) {
+            if (p != null) {
+                pushSignal("component_removed", address, type);
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public void initialize() {
         super.initialize();
-
-        for (Peripheral o : getComponentsByClass(Peripheral.class)) {
-            peripheralAddressMap.put(getComponentAddress(o), o);
-        }
 
         getPersistenceHandler().ifPresent((h) -> ((PersistenceAPI) h).initialize());
     }
@@ -259,6 +290,8 @@ public class MachineOpenComputers extends Machine {
                     // Shutdown
                     return false;
                 }
+            } else if (lastReturned[0] instanceof LuaValueProxy) {
+                // TODO
             } else if (lastReturned[0] != null) {
                 StringBuilder builder = new StringBuilder("Unknown return types:");
                 for (int i = 0; i < lastReturned.length; i++) {
