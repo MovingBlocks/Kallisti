@@ -20,11 +20,7 @@ import org.terasology.kallisti.base.interfaces.Persistable;
 import org.terasology.kallisti.base.util.KallistiReflect;
 import org.terasology.kallisti.base.util.ListBackedMultiValueMap;
 import org.terasology.kallisti.base.util.MultiValueMap;
-import org.terasology.kallisti.base.util.PersistenceException;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,6 +29,12 @@ import java.util.stream.Collectors;
  * The base class for a Machine, implementing component management logic.
  */
 public abstract class Machine {
+    public enum MachineState {
+        UNINITIAILIZED,
+        RUNNING,
+        STOPPED
+    }
+
     private interface Rule {
         int getPriority();
         Class[] getInput();
@@ -153,7 +155,7 @@ public abstract class Machine {
     private final MultiValueMap<Class, Rule> linkingRules;
 
     // Initialized in .initialize();
-    private boolean initialized;
+    protected MachineState state;
 
     public Machine() {
         eventHandler = new ComponentEventHandler();
@@ -166,7 +168,7 @@ public abstract class Machine {
         entryClassContextTable = new HashMap<>();
         nonEntryObjectsByClass = new ListBackedMultiValueMap<>(new IdentityHashMap<>(), ArrayList::new);
 
-        initialized = false;
+        state = MachineState.UNINITIAILIZED;
 
         addNonComponentObject(this);
     }
@@ -349,7 +351,7 @@ public abstract class Machine {
      * Initialize the machine.
      */
     public void initialize() {
-        if (initialized) {
+        if (state != MachineState.UNINITIAILIZED) {
             throw new RuntimeException("Already initialized!");
         }
 
@@ -444,7 +446,7 @@ public abstract class Machine {
             }
         }
 
-        initialized = true;
+        state = MachineState.STOPPED;
     }
 
     /**
@@ -499,11 +501,30 @@ public abstract class Machine {
         return entriesByObject.get(component).context;
     }
 
-    /**
-     * Start the computer after initialization.
-     * @throws Exception
-     */
-    public abstract void start() throws Exception;
+    public final void start() throws Exception {
+        if (state != MachineState.STOPPED) {
+            throw new MachineInvalidStateException(state);
+        }
+
+        startInternal();
+        state = MachineState.RUNNING;
+    }
+    protected abstract void startInternal() throws Exception;
+
+    public final MachineState getState() {
+        return state;
+    }
+
+    public final void stop() throws Exception {
+        if (state != MachineState.RUNNING) {
+            throw new MachineInvalidStateException(state);
+        }
+
+        stopInternal();
+        state = MachineState.STOPPED;
+    }
+
+    protected abstract void stopInternal() throws Exception;
 
     /**
      * Run one tick of the computer, lasting a given amount of time.

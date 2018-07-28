@@ -201,9 +201,15 @@ public class MachineOpenComputers extends Machine {
         return peripheralAddressMap.get(address);
     }
 
-    public void start() throws Exception {
+    @Override
+    public void startInternal() throws Exception {
         state.load(machineJson, "=machine");
         state.newThread();
+    }
+
+    @Override
+    public void stopInternal() throws Exception {
+
     }
 
     private Object[] lastReturned;
