@@ -47,18 +47,24 @@ public class MachineOpenComputers extends Machine {
     private PeripheralOCComputer peripheralComputer;
     private final PersistenceAPI persistenceAPI;
     private final int memorySize;
+    private final float memorySizeMultiplier;
 
-    public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize, Class<? extends LuaState> luaClass, boolean enablePersistence) {
-        this(machineJson, selfContext, font, memorySize, luaClass, enablePersistence ? "__persist_" + UUID.randomUUID().toString() : null);
+    public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize, boolean isMemorySizeExact, Class<? extends LuaState> luaClass, boolean enablePersistence) {
+        this(machineJson, selfContext, font, memorySize, isMemorySizeExact, luaClass, enablePersistence ? "__persist_" + UUID.randomUUID().toString() : null);
     }
 
-    public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize, Class<? extends LuaState> luaClass, String persistenceKey) {
+    public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize, boolean isMemorySizeExact, Class<? extends LuaState> luaClass, String persistenceKey) {
         this.machineJson = machineJson;
-        this.memorySize = memorySize;
+        if (!isMemorySizeExact && System.getProperty("os.arch").endsWith("64")) {
+            this.memorySizeMultiplier = 1.75f;
+        } else {
+            this.memorySizeMultiplier = 1.0f;
+        }
+        this.memorySize = Math.round(memorySize * memorySizeMultiplier);
         this.font = font;
         try {
-            if (memorySize > 0) {
-                this.state = luaClass.getConstructor(int.class).newInstance(memorySize);
+            if (this.memorySize > 0) {
+                this.state = luaClass.getConstructor(int.class).newInstance(this.memorySize);
             } else {
                 this.state = luaClass.newInstance();
             }
@@ -126,6 +132,10 @@ public class MachineOpenComputers extends Machine {
         if (memorySize > 0) {
             state.setTotalMemory(v ? memorySize : Integer.MAX_VALUE);
         }
+    }
+
+    float getMemorySizeMultiplier() {
+        return memorySizeMultiplier;
     }
 
     @Override
