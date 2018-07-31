@@ -23,19 +23,22 @@ import org.terasology.kallisti.base.util.PersistenceException;
 import java.io.*;
 import java.util.*;
 
-public class PersistenceAPI implements Persistable {
+public class OCPersistenceAPI implements Persistable {
 	private static final int CURRENT_VERSION = 0x01;
 
 	private final MachineOpenComputers machine;
 	private String persistenceKey;
 
-	PersistenceAPI(MachineOpenComputers machine, String persistenceKey) {
+	OCPersistenceAPI(MachineOpenComputers machine, String persistenceKey) {
 		this.machine = machine;
 		this.persistenceKey = persistenceKey;
 	}
 
 	void initialize() {
 		LuaState state = machine.getLuaState();
+		state.newTable();
+		state.newTable();
+
 		int perms = state.getTop() - 1;
 		int uperms = state.getTop();
 
@@ -48,6 +51,8 @@ public class PersistenceAPI implements Persistable {
 		}
 		state.setField(state.REGISTRYINDEX, "uperms");
 		state.setField(state.REGISTRYINDEX, "perms");
+
+		configure();
 	}
 
 	// perms = lua.getTop() - 1, uperms = lua.getTop()
@@ -147,7 +152,7 @@ public class PersistenceAPI implements Persistable {
 		return null;
 	}
 
-	private boolean unpersist(byte[] data) throws PersistenceException {
+	private boolean unpersistState(byte[] data) throws PersistenceException {
 		LuaState state = machine.getLuaState();
 		try {
 			state.gc(LuaState.GcAction.STOP, 0);
@@ -193,7 +198,27 @@ public class PersistenceAPI implements Persistable {
 
 		// persist Lua side
 		machine.setLimitMemorySize(false);
-		// TODO
+
+		byte[] kernel = persistState(1);
+		byte[] stack = new byte[0];
+		if (machine.getLuaState().isFunction(2) || machine.getLuaState().isTable(2)) {
+			stack = persistState(2);
+		}
+
+		if (kernel != null) {
+			stream.writeInt(kernel.length);
+			stream.write(kernel);
+
+			if (stack != null) {
+				stream.writeInt(stack.length);
+				stream.write(stack);
+			} else {
+				stream.writeInt(0);
+			}
+		} else {
+			stream.writeInt(0);
+		}
+
 		machine.setLimitMemorySize(true);
 
 		// persist components
@@ -224,6 +249,25 @@ public class PersistenceAPI implements Persistable {
 
 		// unpersist Lua side
 		machine.setLimitMemorySize(false);
+		machine.getLuaState().setTop(0); // clear stack
+
+		int kernelLength = stream.readInt();
+		if (kernelLength > 0) {
+			byte[] kernel = new byte[kernelLength];
+			stream.read(kernel);
+			unpersistState(kernel);
+
+			int stackLength = stream.readInt();
+			if (stackLength > 0) {
+				byte[] stack = new byte[stackLength];
+				stream.read(stack);
+				unpersistState(stack);
+				if (!machine.getLuaState().isTable(2) && !machine.getLuaState().isFunction(2)) {
+					throw new PersistenceException("invalid stack type");
+				}
+			}
+		}
+
 		machine.setLimitMemorySize(true);
 
 		// unpersist components

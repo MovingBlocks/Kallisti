@@ -108,7 +108,6 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
 	    return new int[] { renderer.getWidth(), renderer.getHeight() };
     }
 
-    // TODO: Implement viewport size setting
     @ComponentMethod(returnsMultipleArguments = true)
     public int[] getViewport() {
         return new int[] { renderer.getViewportWidth(), renderer.getViewportHeight() };
@@ -343,7 +342,9 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
         if (v > PERSISTENCE_VERSION) {
             throw new PersistenceException("Version too new!");
         }
-        screenAddr = stream.readBoolean() ? stream.readUTF() : null;
+        if (stream.readBoolean()) {
+            bind(stream.readUTF());
+        }
         bgColor = stream.readInt();
         fgColor = stream.readInt();
         renderer.readInitialPacket(stream);

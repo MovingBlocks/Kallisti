@@ -7,7 +7,8 @@
     "type": "MachineOpenComputers",
     "machineFile": "./assets/opencomputers/lua/machine.lua",
     "memory": 1048576,
-    "luaVersion": "5.3"
+    "luaVersion": "5.3",
+    "persistence": true
   },
   "tickDuration": 0.05,
   "components": [

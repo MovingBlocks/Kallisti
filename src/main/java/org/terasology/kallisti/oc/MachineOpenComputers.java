@@ -22,14 +22,10 @@ import org.terasology.kallisti.base.component.ComponentContext;
 import org.terasology.kallisti.base.component.Machine;
 import org.terasology.kallisti.base.component.Peripheral;
 import org.terasology.kallisti.base.interfaces.Persistable;
-import org.terasology.kallisti.base.util.PersistenceException;
 import org.terasology.kallisti.jnlua.KallistiConverter;
 import org.terasology.kallisti.jnlua.KallistiGlobalRegistry;
 import org.terasology.jnlua.LuaState;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -45,9 +41,10 @@ public class MachineOpenComputers extends Machine {
     private final ShimUserdata shimUserdata;
 
     private PeripheralOCComputer peripheralComputer;
-    private final PersistenceAPI persistenceAPI;
+    private final OCPersistenceAPI persistenceAPI;
     private final int memorySize;
     private final float memorySizeMultiplier;
+    private double timeout = 0.5;
 
     public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize, boolean isMemorySizeExact, Class<? extends LuaState> luaClass, boolean enablePersistence) {
         this(machineJson, selfContext, font, memorySize, isMemorySizeExact, luaClass, enablePersistence ? "__persist_" + UUID.randomUUID().toString() : null);
@@ -98,7 +95,7 @@ public class MachineOpenComputers extends Machine {
         }
 
         if (persistenceKey != null) {
-            persistenceAPI = new PersistenceAPI(this, persistenceKey);
+            persistenceAPI = new OCPersistenceAPI(this, persistenceKey);
         } else {
             persistenceAPI = null;
         }
@@ -126,6 +123,11 @@ public class MachineOpenComputers extends Machine {
         registerRules(PeripheralOCFilesystem.class);
         registerRules(PeripheralOCKeyboard.class);
         registerRules(PeripheralOCScreen.class);
+    }
+
+    public MachineOpenComputers setTimeout(double t) {
+        this.timeout = t;
+        return this;
     }
 
     void setLimitMemorySize(boolean v) {
@@ -176,7 +178,7 @@ public class MachineOpenComputers extends Machine {
     public void initialize() {
         super.initialize();
 
-        getPersistenceHandler().ifPresent((h) -> ((PersistenceAPI) h).initialize());
+        getPersistenceHandler().ifPresent((h) -> ((OCPersistenceAPI) h).initialize());
     }
 
     /**

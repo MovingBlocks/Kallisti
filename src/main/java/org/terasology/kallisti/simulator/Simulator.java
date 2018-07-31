@@ -74,6 +74,10 @@ public class Simulator {
         machine.initialize();
     }
 
+    public Machine getMachine() {
+        return machine;
+    }
+
     public double getTickDuration() {
         return tickDuration;
     }
