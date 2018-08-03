@@ -18,13 +18,14 @@ package org.terasology.kallisti.oc;
 
 import org.terasology.kallisti.base.component.ComponentMethod;
 import org.terasology.kallisti.base.util.KallistiReflect;
+import org.terasology.kallisti.oc.proxy.OCUserdataProxy;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public class ShimUserdata extends ShimInvoker<Object> {
-    final Map<Class, OCLuaProxy> proxyMap = new HashMap<>();
+    final Map<Class, OCUserdataProxy> proxyMap = new HashMap<>();
 
     public ShimUserdata(MachineOpenComputers machine) {
         super(machine);
@@ -35,12 +36,12 @@ public class ShimUserdata extends ShimInvoker<Object> {
         return value;
     }
 
-    protected OCLuaProxy getProxyOrThrow(Object entry) {
-        if (entry instanceof OCLuaProxy) {
-            return (OCLuaProxy) entry;
+    protected OCUserdataProxy getProxyOrThrow(Object entry) {
+        if (entry instanceof OCUserdataProxy) {
+            return (OCUserdataProxy) entry;
         }
 
-        OCLuaProxy luaProxy = KallistiReflect.findClosestMatchingClass(proxyMap, entry.getClass());
+        OCUserdataProxy luaProxy = KallistiReflect.findClosestMatchingClass(proxyMap, entry.getClass());
         if (luaProxy != null) {
             return luaProxy;
         } else {

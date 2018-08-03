@@ -16,6 +16,9 @@
 
 package org.terasology.kallisti.jnlua;
 
+import org.terasology.jnlua.LuaValueProxy;
+import org.terasology.kallisti.base.component.ComponentContext;
+import org.terasology.kallisti.base.component.Peripheral;
 import org.terasology.kallisti.base.proxy.Proxy;
 import org.terasology.kallisti.base.proxy.ProxyFactory;
 import org.terasology.kallisti.base.util.KallistiReflect;
@@ -60,6 +63,8 @@ public class KallistiConverter implements Converter {
 			}
 		}
 
+		// TODO: Lua->Java conversion of Lists and Maps
+
 		return parent.convertLuaValue(luaState, index, formalType);
 	}
 
@@ -78,6 +83,26 @@ public class KallistiConverter implements Converter {
 		if (proxy != null) {
 			luaState.pushJavaObjectRaw(proxy.create(object));
 		} else {
+			// TODO: Move to JNLua?
+			if (object instanceof Collection) {
+				luaState.newTable();
+				int i = 1;
+				for (Object o : (Collection) object) {
+					luaState.pushInteger(i++);
+					luaState.pushJavaObject(o);
+					luaState.setTable(-3);
+				}
+				return;
+			} else if (object instanceof Map) {
+				luaState.newTable();
+				for (Object o : ((Map) object).keySet()) {
+					luaState.pushJavaObject(o);
+					luaState.pushJavaObject(((Map) object).get(o));
+					luaState.setTable(-3);
+				}
+				return;
+			}
+
 			parent.convertJavaObject(luaState, object);
 		}
 	}

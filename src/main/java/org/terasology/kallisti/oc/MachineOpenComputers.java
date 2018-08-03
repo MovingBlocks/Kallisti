@@ -25,6 +25,9 @@ import org.terasology.kallisti.base.interfaces.Persistable;
 import org.terasology.kallisti.jnlua.KallistiConverter;
 import org.terasology.kallisti.jnlua.KallistiGlobalRegistry;
 import org.terasology.jnlua.LuaState;
+import org.terasology.kallisti.oc.proxy.OCUserdataProxy;
+import org.terasology.kallisti.oc.proxy.OCUserdataProxyList;
+import org.terasology.kallisti.oc.proxy.OCUserdataProxyMap;
 
 import java.nio.charset.Charset;
 import java.util.*;
@@ -114,8 +117,8 @@ public class MachineOpenComputers extends Machine {
         state.openLib(LuaState.Library.OS);
         state.pop(1);
 
-        addLuaProxy(List.class, new OCLuaProxyList());
-        addLuaProxy(Map.class, new OCLuaProxyMap());
+        addLuaProxy(List.class, new OCUserdataProxyList());
+        addLuaProxy(Map.class, new OCUserdataProxyMap());
 
         addComponent(selfContext, peripheralComputer = new PeripheralOCComputer());
 
@@ -192,11 +195,11 @@ public class MachineOpenComputers extends Machine {
     }
 
     /**
-     * Register a OCLuaProxy for a given class.
+     * Register a OCUserdataProxy for a given class.
      * @param c The class.
-     * @param proxy The OCLuaProxy instance.
+     * @param proxy The OCUserdataProxy instance.
      */
-    public void addLuaProxy(Class c, OCLuaProxy proxy) {
+    public void addLuaProxy(Class c, OCUserdataProxy proxy) {
         shimUserdata.proxyMap.put(c, proxy);
     }
 

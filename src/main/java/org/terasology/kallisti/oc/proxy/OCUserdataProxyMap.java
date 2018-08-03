@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.terasology.kallisti.oc;
+package org.terasology.kallisti.oc.proxy;
 
 import java.util.Map;
 
-public class OCLuaProxyMap implements OCLuaProxy<Map> {
+public class OCUserdataProxyMap implements OCUserdataProxy<Map> {
     @Override
     public Object index(Map object, Object key) {
         return object.get(key);

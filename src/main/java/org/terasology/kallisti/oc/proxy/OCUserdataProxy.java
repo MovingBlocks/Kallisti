@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.terasology.kallisti.oc;
+package org.terasology.kallisti.oc.proxy;
 
 /**
  * This interface is used by the internal "userdata" library in OpenComputers
@@ -25,7 +25,7 @@ package org.terasology.kallisti.oc;
  *
  * @param <T> The type this interface handles.
  */
-public interface OCLuaProxy<T> {
+public interface OCUserdataProxy<T> {
     Object index(T object, Object key);
 
     default void newindex(T object, Object key, Object value) {

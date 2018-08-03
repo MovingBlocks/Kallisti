@@ -39,7 +39,6 @@ public abstract class ShimInvoker<V> {
 
     @ComponentMethod(returnsMultipleArguments = true)
     public Object[] invoke(Object key, String name, Object... args) {
-//        System.out.println("[" + getClass().getSimpleName() + "] invoke " + name + "(" + args.length + ")");
         V p = get(key);
         if (p == null) {
             return null;

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.terasology.kallisti.oc;
+package org.terasology.kallisti.oc.proxy;
 
 import java.util.List;
 
-public class OCLuaProxyList implements OCLuaProxy<List> {
+public class OCUserdataProxyList implements OCUserdataProxy<List> {
     @Override
     public Object index(List object, Object key) {
         if (key instanceof Number) {
