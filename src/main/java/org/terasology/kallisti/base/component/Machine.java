@@ -18,7 +18,7 @@ package org.terasology.kallisti.base.component;
 
 import org.terasology.kallisti.base.interfaces.Persistable;
 import org.terasology.kallisti.base.util.KallistiReflect;
-import org.terasology.kallisti.base.util.ListBackedMultiValueMap;
+import org.terasology.kallisti.base.util.CollectionBackedMultiValueMap;
 import org.terasology.kallisti.base.util.MultiValueMap;
 
 import java.lang.reflect.*;
@@ -162,12 +162,12 @@ public abstract class Machine {
         eventHandler = new ComponentEventHandler();
 
         creationRules = new ArrayList<>();
-        linkingRules = new ListBackedMultiValueMap<>(new IdentityHashMap<>(), ArrayList::new);
+        linkingRules = new CollectionBackedMultiValueMap<>(new IdentityHashMap<>(), ArrayList::new);
 
         entries = new ArrayList<>();
         entriesByObject = new IdentityHashMap<>();
         entryClassContextTable = new HashMap<>();
-        nonEntryObjectsByClass = new ListBackedMultiValueMap<>(new IdentityHashMap<>(), ArrayList::new);
+        nonEntryObjectsByClass = new CollectionBackedMultiValueMap<>(new IdentityHashMap<>(), ArrayList::new);
 
         state = MachineState.UNINITIAILIZED;
 

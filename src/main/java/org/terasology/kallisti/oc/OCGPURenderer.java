@@ -22,6 +22,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 public class OCGPURenderer implements FrameBuffer.Renderer {
     private final OCTextRenderer textRenderer;
@@ -266,5 +267,11 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
 
     public OCTextRenderer getTextRenderer() {
         return textRenderer;
+    }
+
+    public int[] getPaletteArray() {
+        int[] paletteCopy = new int[palette.length];
+        System.arraycopy(palette, 0, paletteCopy, 0, palette.length);
+        return paletteCopy;
     }
 }

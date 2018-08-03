@@ -27,22 +27,22 @@ import java.util.function.Supplier;
  * @param <K> The key type.
  * @param <V> The value type.
  */
-public class ListBackedMultiValueMap<K, V> implements MultiValueMap<K, V> {
-    private final Map<K, List<V>> map;
-    private final Supplier<List<V>> listSupplier;
+public class CollectionBackedMultiValueMap<K, V> implements MultiValueMap<K, V> {
+    private final Map<K, Collection<V>> map;
+    private final Supplier<Collection<V>> listSupplier;
 
-    public ListBackedMultiValueMap(Map<K, List<V>> map, Supplier<List<V>> listSupplier) {
+    public CollectionBackedMultiValueMap(Map<K, Collection<V>> map, Supplier<Collection<V>> listSupplier) {
         this.map = map;
         this.listSupplier = listSupplier;
     }
 
-    protected final List<V> createForKey(K key) {
+    protected final Collection<V> createForKey(K key) {
         return listSupplier.get();
     }
 
     @Override
     public boolean add(K key, V value) {
-        List<V> list = map.computeIfAbsent(key, this::createForKey);
+        Collection<V> list = map.computeIfAbsent(key, this::createForKey);
         return list.add(value);
     }
 
@@ -53,7 +53,7 @@ public class ListBackedMultiValueMap<K, V> implements MultiValueMap<K, V> {
 
     @Override
     public boolean remove(K key, V value) {
-        List<V> list = map.get(key);
+        Collection<V> list = map.get(key);
         if (list != null) {
             return list.remove(value);
         } else {
@@ -73,8 +73,8 @@ public class ListBackedMultiValueMap<K, V> implements MultiValueMap<K, V> {
 
     @Override
     public Collection<V> values(K key) {
-        List<V> list = map.get(key);
-        return list != null ? Collections.unmodifiableList(list) : Collections.emptyList();
+        Collection<V> list = map.get(key);
+        return list != null ? Collections.unmodifiableCollection(list) : Collections.emptyList();
     }
 
     @Override
@@ -95,7 +95,7 @@ public class ListBackedMultiValueMap<K, V> implements MultiValueMap<K, V> {
     @Override
     public int size() {
         int i = 0;
-        for (List<V> l : map.values()) {
+        for (Collection<V> l : map.values()) {
             i += l.size();
         }
         return i;

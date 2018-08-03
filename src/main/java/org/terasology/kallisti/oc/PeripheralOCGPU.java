@@ -69,7 +69,7 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
     public boolean bind(String address) {
         for (FrameBuffer b : machine.getComponentsByClass(FrameBuffer.class)) {
             if (machine.getComponentAddress(b).equals(address)) {
-                b.bind(this, renderer);
+                b.bind(this, new OCGPURenderer(renderer.getTextRenderer(), renderer.getPaletteArray(), bitDepth));
                 this.screenAddr = address;
                 return true;
             }

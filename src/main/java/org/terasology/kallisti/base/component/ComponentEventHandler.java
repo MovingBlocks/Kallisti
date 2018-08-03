@@ -16,7 +16,7 @@
 
 package org.terasology.kallisti.base.component;
 
-import org.terasology.kallisti.base.util.ListBackedMultiValueMap;
+import org.terasology.kallisti.base.util.CollectionBackedMultiValueMap;
 import org.terasology.kallisti.base.util.MultiValueMap;
 
 import java.lang.invoke.MethodHandle;
@@ -51,7 +51,7 @@ public class ComponentEventHandler {
     private final MultiValueMap<Class, Listener> listeners;
 
     public ComponentEventHandler() {
-        listeners = new ListBackedMultiValueMap<>(new HashMap<>(), ArrayList::new);
+        listeners = new CollectionBackedMultiValueMap<>(new HashMap<>(), ArrayList::new);
     }
 
     /**
