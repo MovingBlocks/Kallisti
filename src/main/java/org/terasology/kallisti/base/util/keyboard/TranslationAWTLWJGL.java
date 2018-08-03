@@ -80,7 +80,7 @@ public class TranslationAWTLWJGL {
 		addMapping(VK_SPACE, 0x39);
 		addMapping(VK_STOP, 0x95);
 		addMapping(VK_TAB, 0x0F);
-		addMapping(VK_UNDEFINED, 0x93);
+		addMapping(VK_UNDERSCORE, 0x93);
 
 		// keypad
 		addMapping(VK_UP, 0xC8);
