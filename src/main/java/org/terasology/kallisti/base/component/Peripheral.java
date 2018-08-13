@@ -17,9 +17,11 @@
 package org.terasology.kallisti.base.component;
 
 /**
- * Interface for Components which serve as Peripherals for a given computer.
+ * Interface for Components which serve as Peripherals for a given computer,
+ * allowing querying by type and ensuring only one of each class is available
+ * per context.
  *
- * TODO: Is this temporary?
+ * @see ComponentInterface
  */
 @ComponentInterface
 public interface Peripheral {

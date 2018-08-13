@@ -23,7 +23,10 @@ import static java.awt.event.KeyEvent.*;
 import static java.awt.event.KeyEvent.VK_DELETE;
 import static java.awt.event.KeyEvent.VK_INSERT;
 
-public class TranslationAWTLWJGL {
+/**
+ * Utility class for transforming between AWT- and LWJGL-type keycodes.
+ */
+public final class TranslationAWTLWJGL {
 	private static final Map<Integer, Integer> vkCode = new HashMap<>();
 	private static final Map<Integer, Integer> codeVk = new HashMap<>();
 
@@ -34,6 +37,10 @@ public class TranslationAWTLWJGL {
 
 	private static void addToAwtOnlyMapping(int a, int b) {
 		codeVk.put(b, a);
+	}
+
+	private TranslationAWTLWJGL() {
+
 	}
 
 	static {
@@ -97,18 +104,32 @@ public class TranslationAWTLWJGL {
 		// numpad
 	}
 
+	/**
+	 * @param a The AWT keycode.
+	 * @return The LWJGL keycode.
+	 */
 	public static int toLwjgl(int a) {
 		return vkCode.get(a);
 	}
 
+	/**
+	 * @param a The LWJGL keycode.
+	 * @return The AWT keycode.
+	 */
 	public static int toAwt(int a){
 		return codeVk.get(a);
 	}
 
+	/**
+	 * @return True if a given AWT keycode has an LWJGL mapping.
+	 */
 	public static boolean hasLwjgl(int code) {
 		return codeVk.containsKey(code);
 	}
 
+	/**
+	 * @return True if a given LWJGL keycode has an AWT mapping.
+	 */
 	public static boolean hasAwt(int code) {
 		return vkCode.containsKey(code);
 	}

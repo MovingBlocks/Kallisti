@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  * Interface for Contexts which are connected with other Components in
- * a neighbor-esque fashion.
+ * a neighbor-type fashion.
  *
  * TODO: Is this temporary?
  */

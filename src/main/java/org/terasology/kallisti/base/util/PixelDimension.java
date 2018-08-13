@@ -27,10 +27,16 @@ public class PixelDimension {
         this.y = y;
     }
 
+    /**
+     * @return The X value.
+     */
     public int getX() {
         return x;
     }
 
+    /**
+     * @return The Y value.
+     */
     public int getY() {
         return y;
     }

@@ -17,7 +17,7 @@
 package org.terasology.kallisti.base.component;
 
 /**
- * A component event emitted once every machine tick.
+ * This ComponentEvent is emitted once every machine tick.
  */
 public class ComponentTickEvent extends ComponentEvent {
     private final double tickTime;

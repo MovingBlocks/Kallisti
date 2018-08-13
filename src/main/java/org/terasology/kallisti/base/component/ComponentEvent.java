@@ -17,7 +17,7 @@
 package org.terasology.kallisti.base.component;
 
 /**
- * The base class for any event emitted to Components.
+ * The base class for any event emitted to a given Machine's Components.
  */
 public abstract class ComponentEvent {
 

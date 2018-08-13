@@ -22,12 +22,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks an interface (or class) used in component queries.
+ * Marks an interface (or class) used in type-based component queries. This
+ * imposes a limitation of only having one object of a given class (and all
+ * subclasses or implementing classes) per unique ComponentContext instance.
  *
- * Any class implementing an interface annotated with this, extending a class
- * annotated with this or being annotated with this itself will be counted as
- * a component which may be queried using the Machine's lookup methods.
- * As such, only one of its type will be able to exist per Context.
+ * Please note that this annotation is not necessary for a Component object,
+ * however retrieval of a component "by Class" from a Machine will NOT be
+ * possible without it.
+ *
+ * @see ComponentContext
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

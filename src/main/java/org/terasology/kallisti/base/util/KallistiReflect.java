@@ -21,6 +21,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 
+/**
+ * Utility methods for
+ */
 public final class KallistiReflect {
     private KallistiReflect() {
 
@@ -59,6 +62,17 @@ public final class KallistiReflect {
         };
     }
 
+    /**
+     * Find the closest matching entry in a given map of classes.
+     *
+     * "Closest" means "jumping the fewest subclasses/interfaces", or
+     * "most accurate".
+     *
+     * @param map The map of classes.
+     * @param cc The class to find in the map.
+     * @param <V> The type of the desired entry.
+     * @return The desired entry, or null if not present.
+     */
     public static <V> V findClosestMatchingClass(Map<Class, V> map, Class cc) {
         V v;
 

@@ -16,6 +16,12 @@
 
 package org.terasology.kallisti.base.component;
 
+/**
+ * Exception thrown if a machine's current state is invalid for a given
+ * operation (starting, stopping, etc.)
+ *
+ * @see Machine.MachineState
+ */
 public class MachineInvalidStateException extends Exception {
 	public MachineInvalidStateException(Machine.MachineState current) {
 		super("Invalid state " + current);

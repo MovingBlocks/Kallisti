@@ -16,6 +16,12 @@
 
 package org.terasology.kallisti.base.util;
 
+/**
+ * Exception thrown during non-IO errors pertaining to
+ * persisting and unpersisting machines.
+ *
+ * @see org.terasology.kallisti.base.interfaces.Persistable
+ */
 public class PersistenceException extends Exception {
 	public PersistenceException(String s) {
 		super(s);

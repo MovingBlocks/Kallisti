@@ -22,6 +22,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+/**
+ * Utility methods pertaining to file reading.
+ */
 public final class KallistiFileUtils {
 	private KallistiFileUtils() {
 	}

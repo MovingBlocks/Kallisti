@@ -19,9 +19,12 @@ package org.terasology.kallisti.base.component;
 import org.terasology.kallisti.base.interfaces.Identifiable;
 
 /**
- * The context of a component, linking it to its in-game representation.
+ * A ComponentContext is an object used for identifying components from
+ * external sources inside a Kallisti virtual machine. It should be implemented
+ * in a way allowing, given a ComponentContext, to find the in-engine location
+ * of a Kallisti component's provider.
  *
- * Please note that a valid ComponentContext MUST implement equals() and
+ * Please note that a valid ComponentContext must implement equals() and
  * hashCode().
  */
 public interface ComponentContext extends Identifiable {

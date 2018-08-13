@@ -18,6 +18,9 @@ package org.terasology.kallisti.base.util;
 
 import org.terasology.kallisti.base.interfaces.FrameBuffer;
 
+/**
+ * Simple framebuffer image implementation.
+ */
 public class SimpleFrameBufferImage implements FrameBuffer.Image {
     private final PixelDimension size;
     private final int[] data;

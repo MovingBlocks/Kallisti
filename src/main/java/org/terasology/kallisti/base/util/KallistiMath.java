@@ -16,13 +16,16 @@
 
 package org.terasology.kallisti.base.util;
 
+/**
+ * Utility methods pertaining to math calculations.
+ */
 public final class KallistiMath {
     private KallistiMath() {
 
     }
 
     /**
-     * log2, rounding up
+     * @return log2(v), rounding up
      */
     public static int log2up(int v) {
         if (v < 2) {
@@ -39,7 +42,7 @@ public final class KallistiMath {
     }
 
     /**
-     * log2, rounding down
+     * @return log2(v), rounding down
      */
     public static int log2(int v) {
         if (v < 2) {

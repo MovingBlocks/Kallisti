@@ -22,10 +22,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Interface used to mark event listening methods in components.
+ * Interface used to mark ComponentEvent-listening methods in components. Those
+ * methods will be called by ComponentEventHandler when such an event is
+ * emitted.
  *
  * The signature is as follows:
  * void eventListener([? extends ComponentEvent] event) { ... }
+ *
+ * @see ComponentEventHandler
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

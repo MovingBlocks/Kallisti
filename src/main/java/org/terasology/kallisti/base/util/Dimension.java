@@ -27,10 +27,16 @@ public class Dimension {
         this.y = y;
     }
 
+    /**
+     * @return The X value.
+     */
     public float getX() {
         return x;
     }
 
+    /**
+     * @return The Y value.
+     */
     public float getY() {
         return y;
     }

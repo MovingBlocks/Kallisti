@@ -16,6 +16,9 @@
 
 package org.terasology.kallisti.base.util;
 
+/**
+ * Utility methods pertaining to color handling.
+ */
 public final class KallistiColor {
     private KallistiColor() {
 

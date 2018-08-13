@@ -20,5 +20,8 @@ package org.terasology.kallisti.base.interfaces;
  * Interface for contexts which have a unique identifier.
  */
 public interface Identifiable {
+    /**
+     * @return The unique identifier of the context.
+     */
     String identifier();
 }

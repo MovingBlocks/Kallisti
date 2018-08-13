@@ -26,7 +26,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * Handler for emitting ComponentEvents.
+ * Utility class which stores listeners for each given ComponentEvent and
+ * allows emitting said events.
+ *
+ * @see ComponentEvent
  */
 public class ComponentEventHandler {
     private static class Listener {

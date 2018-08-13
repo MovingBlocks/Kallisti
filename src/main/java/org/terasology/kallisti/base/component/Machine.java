@@ -174,10 +174,16 @@ public abstract class Machine {
         addNonComponentObject(this);
     }
 
+    /**
+     * @return All component objects inside a given Machine.
+     */
     public Iterable<? extends Object> getAllComponents() {
         return entries.stream().map((m) -> m.object).collect(Collectors.toList());
     }
 
+    /**
+     * @return All component contexts inside a given Machine.
+     */
     public Iterable<ComponentContext> getAllComponentContexts() {
         return entries.stream().map((m) -> m.context).collect(Collectors.toList());
     }
@@ -208,6 +214,9 @@ public abstract class Machine {
     /**
      * Register the component rules present in static methods and constructors
      * of the given class.
+     *
+     * @see ComponentRule
+     *
      * @param c The given class.
      * @throws IllegalArgumentException
      */
@@ -242,6 +251,9 @@ public abstract class Machine {
 
     /**
      * Register the component rules present in methods of the given object.
+     *
+     * @see ComponentRule
+     *
      * @param o The given object.
      * @throws IllegalArgumentException
      */
@@ -285,9 +297,14 @@ public abstract class Machine {
     }
 
     /**
-     * Add a non-component object accessible to components during creation.
+     * Add a non-component object accessible to components during creation
+     * via ComponentRules.
+     *
      * In general, these should be objects related to a given Machine, such
      * as the Machine itself.
+     *
+     * @see ComponentRule
+     *
      * @param o The non-component object.
      * @return Whether the addition was successful.
      */
@@ -303,6 +320,11 @@ public abstract class Machine {
 
     private static final Map<Class, Boolean> isComponentItfMap = new HashMap<>();
 
+    /**
+     * @param c Given class.
+     * @return True if the given class is a subclass of a class annotated
+     * with @ComponentInterface and/or implements one, false otherwise.
+     */
     private static boolean isComponentInterface(Class c) {
         return isComponentItfMap.computeIfAbsent(c,
                 (cc) -> {
@@ -320,6 +342,9 @@ public abstract class Machine {
      * Add a new component to the Machine. If a @ComponentInterface-marked
      * class or subclass is already present with the same context, the
      * component will not be added.
+     *
+     * @see ComponentInterface
+     *
      * @param context The component's context.
      * @param o The component object.
      * @return Whether or not the addition was successful.
@@ -440,6 +465,7 @@ public abstract class Machine {
 
     /**
      * Removes a component from the Machine.
+     *
      * @param context The component's context.
      * @return Whether or not the component has been removed.
      */
@@ -481,6 +507,7 @@ public abstract class Machine {
 
     /**
      * Retrieve a component. May return null.
+     *
      * @param context The context of the component.
      * @param c The class of the component. Should be a (sub)class or
      *          (sub)interface marked with @ComponentInterface.
@@ -497,7 +524,9 @@ public abstract class Machine {
     }
 
     /**
-     * Retrieve all components of a given class.
+     * Retrieve all component objects of a given class type
+     * (or a subclass/implementation).
+     *
      * @param c The class of the component.
      * @param <T> The type of the component.
      * @return The component, or null if not present.
@@ -509,11 +538,12 @@ public abstract class Machine {
                     .values().stream().map((e) -> (T) e.object).collect(Collectors.toList());
     }
 
-
     /**
-     * Retrieve all component contexts of a given class.
+     * Retrieve all component contexts of a given class type
+     * (or a subclass/implementation).
+     *
      * @param c The class of the component.
-     * @return The component, or null if not present.
+     * @return The component context, or null if not present.
      */
     public Collection<ComponentContext> getContextsByClass(Class c) {
         return entryClassContextTable
@@ -522,14 +552,28 @@ public abstract class Machine {
     }
 
     /**
-     * Get the context of a given component.
+     * Get the context of a given component object.
+     *
      * @param component The component object.
-     * @return The context.
+     * @return The context of it.
      */
     public ComponentContext getContext(Object component) {
         return entriesByObject.get(component).context;
     }
 
+    /**
+     * @return The current machine state.
+     */
+    public final MachineState getState() {
+        return state;
+    }
+
+    /**
+     * Start the machine simulation. If the machine is already running,
+     * throws MachineInvalidStateException.
+     *
+     * @throws Exception If something goes wrong during startup.
+     */
     public final void start() throws Exception {
         if (state != MachineState.STOPPED) {
             throw new MachineInvalidStateException(state);
@@ -540,10 +584,12 @@ public abstract class Machine {
     }
     protected abstract void startInternal() throws Exception;
 
-    public final MachineState getState() {
-        return state;
-    }
-
+    /**
+     * Stop the machine simulation. If the machine is not running,
+     * throws MachineInvalidStateException.
+     *
+     * @throws Exception If something goes wrong during shutdown.
+     */
     public final void stop() throws Exception {
         if (state != MachineState.RUNNING) {
             throw new MachineInvalidStateException(state);
@@ -568,7 +614,8 @@ public abstract class Machine {
 
     /**
      * Get the persistence handler, if the machine can be persisted or unpersisted.
-     * @return The persistence handler.
+     *
+     * @return The persistence handler if present.
      */
     public Optional<Persistable> getPersistenceHandler() {
         return Optional.empty();

@@ -79,18 +79,61 @@ public interface FileSystem {
     }
 
     enum Whence {
+        /**
+         * Offsets a seek operation to the beginning of a file.
+         */
         BEGINNING,
+        /**
+         * Offsets a seek operation to the current position in a file.
+         */
         CURRENT,
+        /**
+         * Offsets a seek operation to the end of a file.
+         */
         END
     }
 
     interface File extends AutoCloseable {
+        /**
+         * @return True if seek() is a valid operation on this file.
+         */
         boolean isSeekable();
+        /**
+         * @return True if read() is a valid operation on this file.
+         */
         boolean isReadable();
+        /**
+         * @return True if write() is a valid operation on this file.
+         */
         boolean isWritable();
 
+        /**
+         * Seek to a given position in the file.
+         * @param whence The starting location of a seek.
+         * @param offset The offset to add to the location, in bytes.
+         * @return True if the seek operation was successful, false otherwise.
+         * @throws IOException If something goes wrong with the seek.
+         */
         long seek(Whence whence, int offset) throws IOException;
+
+        /**
+         * Read a given amount of bytes in a file, at current position, and
+         * advance the file pointer.
+         * @param bytes The amount of bytes to read.
+         * @return A byte array of at least length 1 if bytes were read, null otherwise.
+         * @throws IOException If something goes wrong with the read.
+         */
         byte[] read(int bytes) throws IOException;
+
+        /**
+         * Write a given byte array to a file, at current position, and
+         * advance the file pointer.
+         * @param value The byte array to write.
+         * @param offset The offset in the byte array, in bytes.
+         * @param len The amount of data from the byte array to write, in bytes.
+         * @return True if the write was successful, false otherwise.
+         * @throws IOException If something goes wrong with the write.
+         */
         boolean write(byte[] value, int offset, int len) throws IOException;
 
         default boolean write(byte[] value) throws IOException {
@@ -101,6 +144,11 @@ public interface FileSystem {
             return seek(whence, 0);
         }
 
+        /**
+         * @return The current position in the file, or -1 if the file is not
+         * seekable.
+         * @throws IOException If something goes wrong with the seek.
+         */
         default long position() throws IOException {
             return isSeekable() ? seek(Whence.CURRENT, 0) : -1;
         }
@@ -151,6 +199,7 @@ public interface FileSystem {
      * @return The total size of this filesystem, in bytes.
      */
     long getTotalAreaBytes();
+
     /**
      * @return The amount of bytes used by data on this filesystem.
      */
