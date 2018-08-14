@@ -5,34 +5,48 @@ buildscript {
 		}
 	}
 	dependencies {
+		classpath "com.github.jengelman.gradle.plugins:shadow:2.0.4"
 		classpath "gradle.plugin.net.minecrell:licenser:0.3"
 	}
 }
 
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'net.minecrell.licenser'
 
 repositories {
 	mavenCentral()
 	maven {
-	url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
+		url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
 	}
 }
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+defaultTasks 'build', 'shadowJar'
 
 dependencies {
 	compile group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
-	compile group: 'org.msgpack', name: 'msgpack-core', version: '0.8.16'
-	compile fileTree(dir: 'libs', include: '*.jar')
-	testCompile 'junit:junit:4.12'
 	compile group: 'org.terasology.jnlua', name: 'JNLua', version: '0.1.0-SNAPSHOT'
+	testCompile 'junit:junit:4.12'
+
+	compile fileTree(dir: 'libs', include: '*.jar')
 }
 
 license {
 	sourceSets = [project.sourceSets.main]
 	header = project.file("docs/NOTICE")
 	ignoreFailures = true
+}
+
+jar {
+	manifest {
+		attributes "Main-Class": "org.terasology.kallisti.simulator.Main"
+	}
+}
+
+shadowJar {
+   baseName = 'KallistiSimulator'
+   classifier = null
 }

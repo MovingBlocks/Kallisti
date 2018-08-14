@@ -77,6 +77,11 @@ public class Main {
                 OCGPURenderer.genThirdTierPalette()
         ));
 
+        if (args.length == 0) {
+            System.err.println("Must provide valid simulator JSON definition file!");
+            return;
+        }
+
         Simulator simulator = new Simulator(manager, new File(args[0]));
         simulator.start();
 

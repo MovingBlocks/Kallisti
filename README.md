@@ -6,8 +6,6 @@ JVM-based game engines.
 Fantasy computers, in this meaning, refer to imaginary architectures designed for computer games, versus real-world
 technology. (However, it does not exclude support for the latter!)
 
-Note: Documentation is a work in progress.
-
 ## Why?
 
 * Many sandbox-leaning games like to feature, or make available, an in-game computer system. Having a library which
@@ -20,8 +18,20 @@ across all games and architectures.
 
 ## Key concepts
 
-* "Components" can be provided by the engine, and via implementing generic interfaces and automatically being wrapped
-through a rule-based system, the computer VM can translate it into APIs it understands internally.
+* Separation of the APIs of the game engine and of the virtual machine.
+    * "Components" can be provided by the engine, and via implementing generic interfaces and automatically being wrapped
+    through a rule-based system, the computer VM can translate it into APIs it understands internally.
+
+## How to use
+
+There are two main ways to use Kallisti:
+
+* Embed it in your own project (for example, [KComputers](https://github.com/Terasology/KComputers) for the Terasology
+game engine),
+* Run the simulator.
+
+To run the simulator, simply compile the project with ```gradle```, then run ```java -jar KallistiSimulator.jar simulator.json```,
+where ```simulator.json``` is a [valid .JSON simulator definition](https://github.com/MovingBlocks/Kallisti/wiki/Simulator).
 
 ## Supported architectures
 
