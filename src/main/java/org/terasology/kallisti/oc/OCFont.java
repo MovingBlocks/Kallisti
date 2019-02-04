@@ -22,9 +22,15 @@ import java.util.Map;
 
 public class OCFont {
     private final Map<Integer, byte[]> fontArray = new HashMap<>();
+    private final int fontWidth;
     private final int fontHeight;
 
     public OCFont(String font, int fontHeight) {
+        this(font, 8, fontHeight);
+    }
+
+    public OCFont(String font, int fontWidth, int fontHeight) {
+        this.fontWidth = fontWidth;
         this.fontHeight = fontHeight;
         Arrays.asList(font.split("\\n")).forEach((s) -> {
             String[] data = s.trim().split(":");
@@ -43,7 +49,7 @@ public class OCFont {
     }
 
     public int getFontWidth() {
-        return 8;
+        return fontWidth;
     }
 
     public int getFontHeight() {

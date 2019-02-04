@@ -33,7 +33,8 @@ import java.util.Optional;
 public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable {
     private final OCGPURenderer renderer;
     private final MachineOpenComputers machine;
-    private final int maxWidth, maxHeight, bitDepth;
+    private final int bitDepth;
+    private int maxWidth, maxHeight;
     private List<OCGPUCommand> commands;
 
     private String screenAddr;
@@ -55,6 +56,14 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
 
         this.renderer = new OCGPURenderer(new OCTextRenderer(machine.font), resizedPalette, bitDepth);
         setResolution(maxWidth, maxHeight);
+    }
+
+    public int getMaxWidth() {
+        return maxWidth;
+    }
+
+    public int getMaxHeight() {
+        return maxHeight;
     }
 
 	/**
@@ -127,6 +136,15 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
             return true;
         } else {
             return false;
+        }
+    }
+
+    public void setMaxResolution(int maxWidth, int maxHeight) {
+	    this.maxWidth = maxWidth;
+	    this.maxHeight = maxHeight;
+
+	    if (maxWidth < renderer.getWidth() || maxHeight < renderer.getHeight()) {
+	        setResolution(Math.min(maxWidth, renderer.getWidth()), Math.min(maxHeight, renderer.getHeight()));
         }
     }
 
@@ -296,7 +314,7 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
     @Override
 	public void writeSyncPacket(Type type, OutputStream stream) throws IOException {
 		DataOutputStream dataStream = new DataOutputStream(stream);
-		if (type == Type.DELTA && commands.size() > (maxHeight * maxWidth / 9)) {
+		if (type == Type.DELTA && commands.size() > (maxHeight * maxWidth / 16)) {
 			type = Type.INITIAL;
 		}
 

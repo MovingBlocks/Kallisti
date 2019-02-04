@@ -31,11 +31,11 @@ public class OCTextRenderer {
             return new SimpleFrameBufferImage(1, 1);
         }
 
-        FrameBuffer.Image image = new SimpleFrameBufferImage(gpu.getViewportWidth()*8, gpu.getViewportHeight()*font.getFontHeight());
+        FrameBuffer.Image image = new SimpleFrameBufferImage(gpu.getViewportWidth()*font.getFontWidth(), gpu.getViewportHeight()*font.getFontHeight());
         for (int y = 0; y < gpu.getViewportHeight(); y++) {
             for (int x = 0; x < gpu.getViewportWidth(); x++) {
-                int w = drawChar(image, x*8, y*font.getFontHeight(), gpu.getChar(x, y), gpu.getPaletteColor(gpu.getBG(x, y)), gpu.getPaletteColor(gpu.getFG(x, y)));
-                x += (w / 8) - 1;
+                int w = drawChar(image, x*font.getFontWidth(), y*font.getFontHeight(), gpu.getChar(x, y), gpu.getPaletteColor(gpu.getBG(x, y)), gpu.getPaletteColor(gpu.getFG(x, y)));
+                x += (w / font.getFontWidth()) - 1;
             }
         }
         return image;
