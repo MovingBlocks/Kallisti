@@ -1,33 +1,17 @@
-/*
- * Copyright 2018 Adrian Siekierka, MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.kallisti.simulator;
 
-import org.terasology.jnlua.LuaRuntimeException;
 import org.terasology.jnlua.LuaState52;
 import org.terasology.jnlua.LuaState53;
-import org.terasology.kallisti.base.interfaces.Persistable;
 import org.terasology.kallisti.base.util.KallistiFileUtils;
 import org.terasology.kallisti.oc.MachineOpenComputers;
 import org.terasology.kallisti.oc.OCFont;
 import org.terasology.kallisti.oc.OCGPURenderer;
 import org.terasology.kallisti.oc.PeripheralOCGPU;
 
-import java.io.*;
-import java.util.Optional;
+import java.io.File;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -42,7 +26,8 @@ public class Main {
                     ),
                     json.has("memory") ? json.get("memory").getAsInt() : 0,
                     true,
-                    json.has("luaVersion") && "5.2".equals(json.get("luaVersion").getAsString()) ? LuaState52.class : LuaState53.class,
+                    json.has("luaVersion") && "5.2".equals(json.get("luaVersion").getAsString()) ? LuaState52.class :
+                            LuaState53.class,
                     json.has("persistence") && json.get("persistence").getAsBoolean()
             );
 

@@ -1,24 +1,11 @@
-/*
- * Copyright 2018 Adrian Siekierka, MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.kallisti.simulator;
 
 import org.terasology.kallisti.base.interfaces.KeyboardInputProvider;
 
-import javax.swing.*;
+import javax.swing.JFrame;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.LinkedList;
@@ -52,7 +39,7 @@ public class SimulatorKeyboardInputWindow implements KeyboardInputProvider, KeyL
     }
 
     private int getKeyChar(KeyEvent keyEvent) {
-        int k = (int) keyEvent.getKeyChar();
+        int k = keyEvent.getKeyChar();
         return k == 65535 ? -1 : k;
     }
 

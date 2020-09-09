@@ -1,18 +1,5 @@
-/*
- * Copyright 2018 Adrian Siekierka, MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.kallisti.oc;
 
@@ -22,7 +9,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 
 public class OCGPURenderer implements FrameBuffer.Renderer {
     private final OCTextRenderer textRenderer;
@@ -34,6 +20,16 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
 
     private int viewportWidth, viewportHeight;
     private int width, height, bitDepthUsed;
+
+    public OCGPURenderer(OCTextRenderer textRenderer) {
+        this.textRenderer = textRenderer;
+    }
+
+    protected OCGPURenderer(OCTextRenderer textRenderer, int[] palette, int bitDepthUsed) {
+        this.textRenderer = textRenderer;
+        this.palette = palette;
+        this.bitDepthUsed = bitDepthUsed;
+    }
 
     public static int[] genThirdTierPalette() {
         int[] pal = new int[256];
@@ -49,14 +45,17 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
         return pal;
     }
 
-    public OCGPURenderer(OCTextRenderer textRenderer) {
-        this.textRenderer = textRenderer;
-    }
-
-    protected OCGPURenderer(OCTextRenderer textRenderer, int[] palette, int bitDepthUsed) {
-        this.textRenderer = textRenderer;
-        this.palette = palette;
-        this.bitDepthUsed = bitDepthUsed;
+    private static int[] rescale(int[] array, int oldWidth, int oldHeight, int newWidth, int newHeight) {
+        if (oldWidth != newWidth || oldHeight != newHeight) {
+            int[] newArray = new int[newWidth * newHeight];
+            int xSize = Math.min(oldWidth, newWidth);
+            for (int iy = 0; iy < Math.min(oldHeight, newHeight); iy++) {
+                System.arraycopy(array, iy * oldWidth, newArray, iy * newWidth, xSize);
+            }
+            return newArray;
+        } else {
+            return array;
+        }
     }
 
     public int getChar(int x, int y) {
@@ -109,19 +108,6 @@ public class OCGPURenderer implements FrameBuffer.Renderer {
 
     public void setPaletteColor(int i, int v) {
         palette[i] = v;
-    }
-
-    private static int[] rescale(int[] array, int oldWidth, int oldHeight, int newWidth, int newHeight) {
-        if (oldWidth != newWidth || oldHeight != newHeight) {
-            int[] newArray = new int[newWidth * newHeight];
-            int xSize = Math.min(oldWidth, newWidth);
-            for (int iy = 0; iy < Math.min(oldHeight, newHeight); iy++) {
-                System.arraycopy(array, iy * oldWidth, newArray, iy * newWidth, xSize);
-            }
-            return newArray;
-        } else {
-            return array;
-        }
     }
 
     public void setResolution(int width, int height, int viewportWidth, int viewportHeight) {

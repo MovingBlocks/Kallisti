@@ -1,21 +1,9 @@
-/*
- * Copyright 2018 Adrian Siekierka, MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.kallisti.oc;
 
+import org.terasology.jnlua.LuaState;
 import org.terasology.jnlua.LuaState53;
 import org.terasology.jnlua.LuaValueProxy;
 import org.terasology.kallisti.base.component.ComponentContext;
@@ -24,13 +12,18 @@ import org.terasology.kallisti.base.component.Peripheral;
 import org.terasology.kallisti.base.interfaces.Persistable;
 import org.terasology.kallisti.jnlua.KallistiConverter;
 import org.terasology.kallisti.jnlua.KallistiGlobalRegistry;
-import org.terasology.jnlua.LuaState;
 import org.terasology.kallisti.oc.proxy.OCUserdataProxy;
 import org.terasology.kallisti.oc.proxy.OCUserdataProxyList;
 import org.terasology.kallisti.oc.proxy.OCUserdataProxyMap;
 
 import java.nio.charset.Charset;
-import java.util.*;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 public class MachineOpenComputers extends Machine {
     // TODO: This shouldn't be here, but ShimUnicode...
@@ -42,18 +35,23 @@ public class MachineOpenComputers extends Machine {
     private final String machineJson;
     private final LuaState state;
     private final ShimUserdata shimUserdata;
-
-    private PeripheralOCComputer peripheralComputer;
     private final OCPersistenceAPI persistenceAPI;
     private final int memorySize;
     private final float memorySizeMultiplier;
+    private final PeripheralOCComputer peripheralComputer;
     private double timeout = 0.5;
+    private Object[] lastReturned;
+    private double lastReturnedTime, time = 0, cpuTime = 0;
 
-    public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize, boolean isMemorySizeExact, Class<? extends LuaState> luaClass, boolean enablePersistence) {
-        this(machineJson, selfContext, font, memorySize, isMemorySizeExact, luaClass, enablePersistence ? "__persist_" + UUID.randomUUID().toString() : null);
+    public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize,
+                                boolean isMemorySizeExact, Class<? extends LuaState> luaClass,
+                                boolean enablePersistence) {
+        this(machineJson, selfContext, font, memorySize, isMemorySizeExact, luaClass, enablePersistence ? "__persist_"
+                + UUID.randomUUID().toString() : null);
     }
 
-    public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize, boolean isMemorySizeExact, Class<? extends LuaState> luaClass, String persistenceKey) {
+    public MachineOpenComputers(String machineJson, ComponentContext selfContext, OCFont font, int memorySize,
+                                boolean isMemorySizeExact, Class<? extends LuaState> luaClass, String persistenceKey) {
         this.machineJson = machineJson;
         if (!isMemorySizeExact && System.getProperty("os.arch").endsWith("64")) {
             this.memorySizeMultiplier = 1.75f;
@@ -185,9 +183,9 @@ public class MachineOpenComputers extends Machine {
     }
 
     /**
-     * Push a new signal to the OpenComputers signal queue. The first
-     * parameter is expected to be of type String by most OpenComputers
-     * software.
+     * Push a new signal to the OpenComputers signal queue. The first parameter is expected to be of type String by most
+     * OpenComputers software.
+     *
      * @param args The signal, as an array of arguments.
      */
     public void pushSignal(Object... args) {
@@ -196,6 +194,7 @@ public class MachineOpenComputers extends Machine {
 
     /**
      * Register a OCUserdataProxy for a given class.
+     *
      * @param c The class.
      * @param proxy The OCUserdataProxy instance.
      */
@@ -216,6 +215,7 @@ public class MachineOpenComputers extends Machine {
 
     /**
      * Retrieve the OpenComputers-defined "type" of a component.
+     *
      * @param o The component object.
      * @return The type, as a string.
      */
@@ -229,17 +229,19 @@ public class MachineOpenComputers extends Machine {
 
     /**
      * Retrieve the OpenComputers-defined "address" of a component.
+     *
      * @param o The component object.
      * @return The address UUID, as a string.
      */
     public String getComponentAddress(Object o) {
         ComponentContext context = o instanceof ComponentContext ? (ComponentContext) o : getContext(o);
-        return context != null ? UUID.nameUUIDFromBytes(context.identifier().getBytes(Charset.forName("UTF-8"))).toString() : null;
+        return context != null ?
+                UUID.nameUUIDFromBytes(context.identifier().getBytes(StandardCharsets.UTF_8)).toString() : null;
     }
 
     /**
-     * Retrieve a component implementing Peripheral with a given
-     * OpenComputers-defined "address".
+     * Retrieve a component implementing Peripheral with a given OpenComputers-defined "address".
+     *
      * @param address The OC-style address.
      * @return The peripheral, or null if none found.
      */
@@ -257,9 +259,6 @@ public class MachineOpenComputers extends Machine {
     public void stopInternal() throws Exception {
 
     }
-
-    private Object[] lastReturned;
-    private double lastReturnedTime, time = 0, cpuTime = 0;
 
     /**
      * @return The virtual machine CPU time, in seconds.

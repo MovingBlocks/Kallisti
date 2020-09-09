@@ -1,18 +1,5 @@
-/*
- * Copyright 2018 Adrian Siekierka, MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.kallisti.simulator;
 
@@ -22,30 +9,22 @@ import org.terasology.kallisti.base.interfaces.FrameBuffer;
 import org.terasology.kallisti.base.interfaces.Synchronizable;
 import org.terasology.kallisti.base.util.PixelDimension;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class SimulatorFrameBufferWindow implements FrameBuffer {
-    public class Canvas extends JComponent {
-        @Override
-        public void paintComponent(Graphics gz) {
-            if (image != null) {
-                gz.drawImage(image, 0, 0, null);
-            }
-        }
-    }
-
     private final JFrame window;
     private final Canvas canvas;
     private BufferedImage image;
     private Synchronizable source;
     private Renderer rendererSrc, rendererDst;
     private boolean sentInitialPacket = false;
-
     public SimulatorFrameBufferWindow(String windowName) {
         window = new JFrame(windowName);
         canvas = new Canvas();
@@ -61,7 +40,8 @@ public class SimulatorFrameBufferWindow implements FrameBuffer {
                 try {
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-                    source.writeSyncPacket(sentInitialPacket ? Synchronizable.Type.DELTA : Synchronizable.Type.INITIAL, outputStream);
+                    source.writeSyncPacket(sentInitialPacket ? Synchronizable.Type.DELTA :
+                            Synchronizable.Type.INITIAL, outputStream);
 
                     ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
                     outputStream.close();
@@ -114,5 +94,14 @@ public class SimulatorFrameBufferWindow implements FrameBuffer {
 
         this.image = new BufferedImage(size.getX(), size.getY(), BufferedImage.TYPE_INT_ARGB);
         this.image.setRGB(0, 0, this.image.getWidth(), this.image.getHeight(), data, 0, this.image.getWidth());
+    }
+
+    public class Canvas extends JComponent {
+        @Override
+        public void paintComponent(Graphics gz) {
+            if (image != null) {
+                gz.drawImage(image, 0, 0, null);
+            }
+        }
     }
 }

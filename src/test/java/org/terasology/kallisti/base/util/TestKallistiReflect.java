@@ -1,3 +1,6 @@
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
+
 package org.terasology.kallisti.base.util;
 
 import org.junit.Assert;
@@ -8,18 +11,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class TestKallistiReflect {
-    public class A extends C implements B {
-
-    }
-
-    public interface B extends Serializable {
-
-    }
-
-    public class C {
-
-    }
-
     @Test
     public void classesListing() {
         Iterable<Class> c = KallistiReflect.classes(A.class);
@@ -32,5 +23,17 @@ public class TestKallistiReflect {
         expected.add(Serializable.class);
         expected.add(Object.class);
         Assert.assertEquals(expected, actual);
+    }
+
+    public interface B extends Serializable {
+
+    }
+
+    public class A extends C implements B {
+
+    }
+
+    public class C {
+
     }
 }

@@ -1,18 +1,5 @@
-/*
- * Copyright 2018 Adrian Siekierka, MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.kallisti.simulator;
 
@@ -31,7 +18,7 @@ import java.util.Map;
 public class Simulator {
     private static final Gson gson = new Gson();
     private final Machine machine;
-    private double tickDuration;
+    private final double tickDuration;
 
     public Simulator(SimulatorInstantiationManager manager, File file) throws Exception {
         JsonObject object = gson.fromJson(
@@ -56,7 +43,8 @@ public class Simulator {
         // Phase 2: Populate contexts, including registering objects
         populateContext(machineJson, null, manager, components, objects);
         for (int i = 0; i < componentsJson.size(); i++) {
-            populateContext(componentsJson.get(i).getAsJsonObject(), objects.get(machineContext), manager, components, objects);
+            populateContext(componentsJson.get(i).getAsJsonObject(), objects.get(machineContext), manager, components
+                    , objects);
         }
 
         // Phase 3: Correctness checks
@@ -74,29 +62,15 @@ public class Simulator {
         machine.initialize();
     }
 
-    public Machine getMachine() {
-        return machine;
-    }
-
-    public double getTickDuration() {
-        return tickDuration;
-    }
-
-    public void start() throws Exception {
-        machine.start();
-    }
-
-    public boolean tick() throws Exception {
-        return machine.tick(getTickDuration());
-    }
-
     private static ComponentContext appendContextInitial(JsonObject object, Map<String, ComponentContext> components) {
         ComponentContext initial = new SimulatorComponentContext(object.get("id").getAsString());
         components.put(initial.identifier(), initial);
         return initial;
     }
 
-    private static void populateContext(JsonObject object, Object owner, SimulatorInstantiationManager manager, Map<String, ComponentContext> components, Map<ComponentContext, Object> objects) {
+    private static void populateContext(JsonObject object, Object owner, SimulatorInstantiationManager manager,
+                                        Map<String, ComponentContext> components,
+                                        Map<ComponentContext, Object> objects) {
         SimulatorComponentContext context = (SimulatorComponentContext) components.get(object.get("id").getAsString());
 
         if (object.has("connects")) {
@@ -111,5 +85,21 @@ public class Simulator {
             throw new RuntimeException("Duplicate component context: '" + context.identifier() + "'!");
         }
         objects.put(context, o);
+    }
+
+    public Machine getMachine() {
+        return machine;
+    }
+
+    public double getTickDuration() {
+        return tickDuration;
+    }
+
+    public void start() throws Exception {
+        machine.start();
+    }
+
+    public boolean tick() throws Exception {
+        return machine.tick(getTickDuration());
     }
 }

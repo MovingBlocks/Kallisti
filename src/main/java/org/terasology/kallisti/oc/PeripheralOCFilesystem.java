@@ -1,18 +1,5 @@
-/*
- * Copyright 2018 Adrian Siekierka, MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.kallisti.oc;
 
@@ -23,13 +10,23 @@ import org.terasology.kallisti.base.component.Peripheral;
 import org.terasology.kallisti.base.interfaces.FileSystem;
 import org.terasology.kallisti.base.interfaces.Labelable;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class PeripheralOCFilesystem implements Peripheral {
+    private final FileSystem fileSystem;
+    private final MachineOpenComputers machine;
+
+    @ComponentRule
+    public PeripheralOCFilesystem(MachineOpenComputers machine, FileSystem fileSystem) {
+        this.fileSystem = fileSystem;
+        this.machine = machine;
+    }
+
     private static FileSystem.Whence stringToWhence(String s) {
         if ("set".equals(s)) return FileSystem.Whence.BEGINNING;
         else if ("cur".equals(s)) return FileSystem.Whence.CURRENT;
@@ -40,51 +37,6 @@ public class PeripheralOCFilesystem implements Peripheral {
     @Override
     public String type() {
         return "filesystem";
-    }
-
-    public class OCFile {
-        private final FileSystem.File file;
-
-        public OCFile(FileSystem.File file) {
-            this.file = file;
-        }
-
-        @ComponentMethod
-        public void close() throws Exception {
-            file.close();
-        }
-
-        @ComponentMethod
-        public byte[] read(int bytes) throws IOException {
-            byte[] data = file.read(bytes);
-            // OpenComputers' reading relies on returning nil if the file
-            // has been read fully.
-            if (data != null && data.length == 0) {
-                return null;
-            } else {
-                return data;
-            }
-        }
-
-        @ComponentMethod
-        public boolean write(byte[] value) throws IOException {
-            return file.write(value);
-        }
-
-        @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-        @ComponentMethod
-        public long seek(String whence, Optional<Number> offset) throws IOException {
-            return file.seek(stringToWhence(whence), offset.orElse(0).intValue());
-        }
-    }
-
-    private final FileSystem fileSystem;
-    private final MachineOpenComputers machine;
-
-    @ComponentRule
-    public PeripheralOCFilesystem(MachineOpenComputers machine, FileSystem fileSystem) {
-        this.fileSystem = fileSystem;
-        this.machine = machine;
     }
 
     @ComponentMethod
@@ -133,18 +85,18 @@ public class PeripheralOCFilesystem implements Peripheral {
     @ComponentMethod(returnsMultipleArguments = true)
     public Object[] makeDirectory(String path) {
         try {
-            return fileSystem.createDirectory(path) ? new Object[] {true} : new Object[] {null, "failure"};
+            return fileSystem.createDirectory(path) ? new Object[]{true} : new Object[]{null, "failure"};
         } catch (Exception e) {
-            return new Object[] {null, e.getMessage()};
+            return new Object[]{null, e.getMessage()};
         }
     }
 
     @ComponentMethod(returnsMultipleArguments = true)
     public Object[] remove(String path) {
         try {
-            return fileSystem.delete(path) ? new Object[] {true} : new Object[] {null, "failure"};
+            return fileSystem.delete(path) ? new Object[]{true} : new Object[]{null, "failure"};
         } catch (Exception e) {
-            return new Object[] {null, e.getMessage()};
+            return new Object[]{null, e.getMessage()};
         }
     }
 
@@ -181,8 +133,10 @@ public class PeripheralOCFilesystem implements Peripheral {
     public Object open(String path, Optional<String> omode) throws IOException {
         String mode = omode.orElse("r");
         if ("r".equals(mode) || "rb".equals(mode)) return new OCFile(fileSystem.open(path, FileSystem.OpenMode.READ));
-        else if ("w".equals(mode) || "wb".equals(mode)) return new OCFile(fileSystem.open(path, FileSystem.OpenMode.WRITE));
-        else if ("a".equals(mode) || "ab".equals(mode)) return new OCFile(fileSystem.open(path, FileSystem.OpenMode.APPEND));
+        else if ("w".equals(mode) || "wb".equals(mode))
+            return new OCFile(fileSystem.open(path, FileSystem.OpenMode.WRITE));
+        else if ("a".equals(mode) || "ab".equals(mode))
+            return new OCFile(fileSystem.open(path, FileSystem.OpenMode.APPEND));
         else return null;
     }
 
@@ -215,5 +169,41 @@ public class PeripheralOCFilesystem implements Peripheral {
         }
 
         return o.write(valueArr);
+    }
+
+    public class OCFile {
+        private final FileSystem.File file;
+
+        public OCFile(FileSystem.File file) {
+            this.file = file;
+        }
+
+        @ComponentMethod
+        public void close() throws Exception {
+            file.close();
+        }
+
+        @ComponentMethod
+        public byte[] read(int bytes) throws IOException {
+            byte[] data = file.read(bytes);
+            // OpenComputers' reading relies on returning nil if the file
+            // has been read fully.
+            if (data != null && data.length == 0) {
+                return null;
+            } else {
+                return data;
+            }
+        }
+
+        @ComponentMethod
+        public boolean write(byte[] value) throws IOException {
+            return file.write(value);
+        }
+
+        @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+        @ComponentMethod
+        public long seek(String whence, Optional<Number> offset) throws IOException {
+            return file.seek(stringToWhence(whence), offset.orElse(0).intValue());
+        }
     }
 }

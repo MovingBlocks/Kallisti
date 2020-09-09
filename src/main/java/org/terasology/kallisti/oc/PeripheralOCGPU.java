@@ -1,18 +1,5 @@
-/*
- * Copyright 2018 Adrian Siekierka, MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.kallisti.oc;
 
@@ -25,17 +12,21 @@ import org.terasology.kallisti.base.util.KallistiColor;
 import org.terasology.kallisti.base.util.KallistiMath;
 import org.terasology.kallisti.base.util.PersistenceException;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
 public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable {
+    private static final int PERSISTENCE_VERSION = 0x01;
     private final OCGPURenderer renderer;
     private final MachineOpenComputers machine;
     private final int maxWidth, maxHeight, bitDepth;
-    private List<OCGPUCommand> commands;
-
+    private final List<OCGPUCommand> commands;
     private String screenAddr;
     private int bgColor, fgColor;
 
@@ -57,12 +48,12 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
         setResolution(maxWidth, maxHeight);
     }
 
-	/**
-	 * Apply a command on the server side.
-	 */
-	protected void apply(OCGPUCommand command) {
-    	commands.add(command);
-    	command.apply(renderer);
+    /**
+     * Apply a command on the server side.
+     */
+    protected void apply(OCGPUCommand command) {
+        commands.add(command);
+        command.apply(renderer);
     }
 
     @ComponentMethod
@@ -99,23 +90,23 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
 
     @ComponentMethod(returnsMultipleArguments = true)
     public int[] getResolution() {
-	    return new int[] { renderer.getWidth(), renderer.getHeight() };
+        return new int[]{renderer.getWidth(), renderer.getHeight()};
     }
 
     // TODO: plan9k???
     @ComponentMethod(returnsMultipleArguments = true)
     public int[] getResolution(Object o) {
-	    return new int[] { renderer.getWidth(), renderer.getHeight() };
+        return new int[]{renderer.getWidth(), renderer.getHeight()};
     }
 
     @ComponentMethod(returnsMultipleArguments = true)
     public int[] getViewport() {
-        return new int[] { renderer.getViewportWidth(), renderer.getViewportHeight() };
+        return new int[]{renderer.getViewportWidth(), renderer.getViewportHeight()};
     }
 
     @ComponentMethod(returnsMultipleArguments = true)
     public int[] maxResolution() {
-        return new int[] { maxWidth, maxHeight };
+        return new int[]{maxWidth, maxHeight};
     }
 
     @ComponentMethod
@@ -169,7 +160,7 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
     }
 
     private int[] getOldColorReturn(int palIdx) {
-    	return new int[] { renderer.getPaletteColor(palIdx), palIdx };
+        return new int[]{renderer.getPaletteColor(palIdx), palIdx};
     }
 
     @ComponentMethod
@@ -245,12 +236,12 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
             int[] fgColor = getOldColorReturn(renderer.getFG(xi - 1, yi - 1));
 
             if (bgColor.length == 2 && fgColor.length == 2) {
-                return new Object[] { s, fgColor[0], bgColor[0], fgColor[1], bgColor[1] };
+                return new Object[]{s, fgColor[0], bgColor[0], fgColor[1], bgColor[1]};
             } else {
-                return new Object[] { s, fgColor[0], bgColor[0] };
+                return new Object[]{s, fgColor[0], bgColor[0]};
             }
         } else {
-            return new Object[] { " ", 0, 0, 0, 0 };
+            return new Object[]{" ", 0, 0, 0, 0};
         }
     }
 
@@ -258,7 +249,8 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
     public boolean fill(Number x, Number y, Number width, Number height, String c) {
         if (c.length() >= 1) {
             int codePoint = c.codePointAt(0);
-            apply(new OCGPUCommand.Fill(bgColor, fgColor, x.intValue(), y.intValue(), width.intValue(), height.intValue(), codePoint));
+            apply(new OCGPUCommand.Fill(bgColor, fgColor, x.intValue(), y.intValue(), width.intValue(),
+                    height.intValue(), codePoint));
             return true;
         } else {
             return false;
@@ -271,15 +263,17 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
             return true;
         }
 
-        apply(new OCGPUCommand.Copy(x.intValue(), y.intValue(), width.intValue(), height.intValue(), tx.intValue(), ty.intValue()));
+        apply(new OCGPUCommand.Copy(x.intValue(), y.intValue(), width.intValue(), height.intValue(), tx.intValue(),
+                ty.intValue()));
         return true;
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @ComponentMethod
     public boolean set(Number x, Number y, String value, Optional<Boolean> vertical) {
-		int maxLen = vertical.orElse(false) ? (maxHeight - (y.intValue() - 1)) : (maxWidth - (x.intValue() - 1));
-		apply(new OCGPUCommand.Set(bgColor, fgColor, x.intValue(), y.intValue(), vertical.orElse(false), value.length() > maxLen ? value.substring(0, maxLen) : value));
+        int maxLen = vertical.orElse(false) ? (maxHeight - (y.intValue() - 1)) : (maxWidth - (x.intValue() - 1));
+        apply(new OCGPUCommand.Set(bgColor, fgColor, x.intValue(), y.intValue(), vertical.orElse(false),
+                value.length() > maxLen ? value.substring(0, maxLen) : value));
         return true;
     }
 
@@ -294,30 +288,28 @@ public class PeripheralOCGPU implements Synchronizable, Peripheral, Persistable 
     }
 
     @Override
-	public void writeSyncPacket(Type type, OutputStream stream) throws IOException {
-		DataOutputStream dataStream = new DataOutputStream(stream);
-		if (type == Type.DELTA && commands.size() > (maxHeight * maxWidth / 9)) {
-			type = Type.INITIAL;
-		}
+    public void writeSyncPacket(Type type, OutputStream stream) throws IOException {
+        DataOutputStream dataStream = new DataOutputStream(stream);
+        if (type == Type.DELTA && commands.size() > (maxHeight * maxWidth / 9)) {
+            type = Type.INITIAL;
+        }
 
-		if (type == Type.INITIAL) {
-			dataStream.writeByte(0x01); // header byte
+        if (type == Type.INITIAL) {
+            dataStream.writeByte(0x01); // header byte
 
-			renderer.writeInitialPacket(dataStream);
-		} else if (type == Type.DELTA) {
-			dataStream.writeByte(0x02); // header byte
+            renderer.writeInitialPacket(dataStream);
+        } else if (type == Type.DELTA) {
+            dataStream.writeByte(0x02); // header byte
 
-			dataStream.writeInt(commands.size());
-			for (OCGPUCommand command : commands) {
-				OCGPUCommand.write(command, dataStream);
-			}
-		}
+            dataStream.writeInt(commands.size());
+            for (OCGPUCommand command : commands) {
+                OCGPUCommand.write(command, dataStream);
+            }
+        }
 
-		commands.clear();
-		dataStream.close();
-	}
-
-	private static final int PERSISTENCE_VERSION = 0x01;
+        commands.clear();
+        dataStream.close();
+    }
 
     @Override
     public void persist(OutputStream data) throws IOException, PersistenceException {

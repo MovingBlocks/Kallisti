@@ -1,22 +1,11 @@
-/*
- * Copyright 2018 Adrian Siekierka, MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.kallisti.oc;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -24,11 +13,6 @@ import java.util.Map;
 public abstract class OCGPUCommand {
     private static final Map<Integer, Class> idToClass;
     private static final Map<Class, Integer> classToId;
-
-    private static void register(int id, Class<? extends OCGPUCommand> c) {
-        idToClass.put(id, c);
-        classToId.put(c, id);
-    }
 
     static {
         idToClass = new HashMap<>();
@@ -39,6 +23,11 @@ public abstract class OCGPUCommand {
         register(0x03, Copy.class);
         register(0x04, Set.class);
         register(0x05, SetResolution.class);
+    }
+
+    private static void register(int id, Class<? extends OCGPUCommand> c) {
+        idToClass.put(id, c);
+        classToId.put(c, id);
     }
 
     public static void write(OCGPUCommand command, DataOutputStream dataStream) throws IOException {
@@ -55,6 +44,10 @@ public abstract class OCGPUCommand {
             throw new RuntimeException(e); // Should not happen!
         }
     }
+
+    protected abstract void write(DataOutputStream stream) throws IOException;
+
+    public abstract void apply(OCGPURenderer renderer);
 
     abstract static class WithColors extends OCGPUCommand {
         final int bg, fg;
@@ -241,7 +234,4 @@ public abstract class OCGPUCommand {
             renderer.set(bg, fg, x, y, vertical, value);
         }
     }
-
-    protected abstract void write(DataOutputStream stream) throws IOException;
-    public abstract void apply(OCGPURenderer renderer);
 }

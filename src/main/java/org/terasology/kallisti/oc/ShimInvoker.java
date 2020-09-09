@@ -1,30 +1,16 @@
-/*
- * Copyright 2018 Adrian Siekierka, MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 
 package org.terasology.kallisti.oc;
 
-import org.terasology.kallisti.base.component.ComponentMethod;
 import org.terasology.jnlua.LuaState;
 import org.terasology.jnlua.LuaValueProxy;
+import org.terasology.kallisti.base.component.ComponentMethod;
 import org.terasology.kallisti.base.util.KallistiArgUtils;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -62,7 +48,7 @@ public abstract class ShimInvoker<V> {
                 ), true);
 
         if (!om.isPresent()) {
-            return new Object[] { false, "could not find method " + name };
+            return new Object[]{false, "could not find method " + name};
         }
 
         Method m = om.get();
@@ -81,9 +67,9 @@ public abstract class ShimInvoker<V> {
         try {
             o = m.invoke(p, realArgs);
         } catch (InvocationTargetException e) {
-            return new Object[] { false, e.getTargetException().getMessage() };
+            return new Object[]{false, e.getTargetException().getMessage()};
         } catch (IllegalAccessException e) {
-            return new Object[] { false, e.getMessage() };
+            return new Object[]{false, e.getMessage()};
         }
 
         Object[] returns = null;

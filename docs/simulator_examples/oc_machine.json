@@ -27,7 +27,9 @@
     {
       "id": "screen-address",
       "type": "SimulatorFrameBufferWindow",
-      "connects": ["keyboard-address"],
+      "connects": [
+        "keyboard-address"
+      ],
       "windowName": "OpenComputers framebuffer"
     },
     {
