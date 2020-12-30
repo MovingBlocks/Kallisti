@@ -1,10 +1,10 @@
 {
-    "id": "Kallisti",
-    "version": "1.0.0",
-    "author": "asiekierka",
-    "displayName": "Kallisti",
-    "description": "Library for embedding fantasy computer virtual machines in game engines.",
-    "dependencies": [],
-    "serverSideOnly": false,
-    "isLibrary": true
+  "id": "Kallisti",
+  "version": "1.1.0-SNAPSHOT",
+  "author": "asiekierka",
+  "displayName": "Kallisti",
+  "description": "Library for embedding fantasy computer virtual machines in game engines.",
+  "dependencies": [],
+  "serverSideOnly": false,
+  "isLibrary": true
 }
