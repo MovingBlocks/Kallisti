@@ -1,11 +1,12 @@
 package org.terasology.kallisti.base.util;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestKallistiReflect {
     public class A extends C implements B {
@@ -31,6 +32,6 @@ public class TestKallistiReflect {
         expected.add(C.class);
         expected.add(Serializable.class);
         expected.add(Object.class);
-        Assert.assertEquals(expected, actual);
+        assertEquals(expected, actual);
     }
 }
